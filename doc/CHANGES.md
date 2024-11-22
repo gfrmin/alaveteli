@@ -5,6 +5,9 @@
 * Stop sending exception notifications for anti-spam actions (rate limiting, spam
   detection, blocked IPs). These expected behaviors are now logged to Rails logs
   instead of generating email notifications.
+* Block various action links via robots.txt (Laurent Savaete)
+* Remove "Previously known as" from profile pages due to performance issues
+  (Gareth Rees)
 
 # 0.46.7.0
 
