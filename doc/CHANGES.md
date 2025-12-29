@@ -1,3 +1,18 @@
+# develop
+
+## Highlighted Features
+
+* Fix thread-safety issues in acts_as_xapian for multi-threaded servers (gfrmin)
+
+## Upgrade Notes
+
+### Changed Templates
+
+The following templates have been changed. Please use `script/reconcile-theme`
+to update overrides in your theme to match the new templates.
+
+    None yet
+
 # 0.46.0.0
 
 ## Highlighted Features
