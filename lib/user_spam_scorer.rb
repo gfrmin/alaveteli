@@ -72,6 +72,8 @@ class UserSpamScorer
   DEFAULT_SPAM_EMAIL_FORMATS = [].freeze
   DEFAULT_SPAM_NAME_FORMATS = [
     /\A.*bitcoin.*\z/i,
+    /\A.*https?:\/\/.*\z/i,
+    /\A.*\w+\.\w{2,}\/\w+.*\z/,
     /\A.*currency.*\z/i,
     /\A.*support.*\z/i,
     /\A.*customer.*service.*\z/i,
