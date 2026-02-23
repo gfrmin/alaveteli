@@ -837,7 +837,10 @@ RSpec.describe UserController do
             to receive(:block_rate_limited_ips?).and_return(true)
         end
 
-        it 'sends an exception notification' do
+        it 'logs the rate limited signup attempt' do
+          expect(Rails.logger).to receive(:info).with(
+            /Rate limited signup from.*rate-limited@localhost/
+          )
           post :signup, params: {
                           user_signup: {
                             email: 'rate-limited@localhost',
@@ -846,8 +849,6 @@ RSpec.describe UserController do
                             password_confirmation: 'sillypassword'
                           }
                         }
-          mail = ActionMailer::Base.deliveries.first
-          expect(mail.subject).to match(/Rate limited signup from/)
         end
 
         it 'blocks the signup' do
@@ -893,7 +894,10 @@ RSpec.describe UserController do
             to receive(:block_rate_limited_ips?).and_return(false)
         end
 
-        it 'sends an exception notification' do
+        it 'logs the rate limited signup attempt' do
+          expect(Rails.logger).to receive(:info).with(
+            /Rate limited signup from.*rate-limited@localhost/
+          )
           post :signup, params: {
                           user_signup: {
                             email: 'rate-limited@localhost',
@@ -902,8 +906,6 @@ RSpec.describe UserController do
                             password_confirmation: 'sillypassword'
                           }
                         }
-          mail = ActionMailer::Base.deliveries.first
-          expect(mail.subject).to match(/Rate limited signup from/)
         end
 
         it 'allows the signup' do
@@ -981,7 +983,10 @@ RSpec.describe UserController do
             to receive(:spam_should_be_blocked?).and_return(false)
         end
 
-        it 'sends an exception notification' do
+        it 'logs the spam detection' do
+          expect(Rails.logger).to receive(:info).with(
+            /Attempted signup from suspected spammer.*spammer@example\.com/
+          )
           post :signup, params: {
                           user_signup: {
                             email: 'spammer@example.com',
@@ -990,8 +995,6 @@ RSpec.describe UserController do
                             password_confirmation: 'sillypassword'
                           }
                         }
-          mail = ActionMailer::Base.deliveries.first
-          expect(mail.subject).to match(/signup from suspected spammer/)
         end
 
         it 'allows the signup' do

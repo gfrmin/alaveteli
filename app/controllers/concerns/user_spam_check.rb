@@ -22,12 +22,10 @@ module UserSpamCheck
     if spam_should_be_blocked?
       logger.info(msg)
       block.call if block_given?
-
       true
-    elsif send_exception_notifications?
-      e = Exception.new(msg)
-      ExceptionNotifier.notify_exception(e, env: request.env)
-
+    else
+      # Log spam detection for monitoring when not blocking
+      logger.info(msg)
       false
     end
   end

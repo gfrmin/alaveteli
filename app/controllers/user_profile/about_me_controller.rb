@@ -67,10 +67,8 @@ class UserProfile::AboutMeController < ApplicationController
   end
 
   def handle_spam_about_me_text(user)
-    if send_exception_notifications?
-      e = Exception.new("Spam about me text from user #{ user.id }")
-      ExceptionNotifier.notify_exception(e, env: request.env)
-    end
+    # Log spam detection for monitoring
+    Rails.logger.info("Spam about me text from user #{user.id}")
 
     if block_spam_about_me_text?
       flash[:error] = _("You can't update your profile text at this time.")

@@ -121,12 +121,10 @@ class Users::MessagesController < UserController
       AlaveteliConfiguration.enable_anti_spam
   end
 
-  # Sends an exception and blocks the message depending on configuration.
+  # Logs spam detection and blocks the message depending on configuration.
   def handle_spam_user_message(user)
-    if send_exception_notifications?
-      e = Exception.new("Possible spam user message from user #{ user.id }")
-      ExceptionNotifier.notify_exception(e, env: request.env)
-    end
+    # Log spam detection for monitoring
+    Rails.logger.info("Possible spam user message from user #{user.id}")
 
     if block_spam_user_messages?
       flash.now[:error] = _("Sorry, we're currently unable to send your " \

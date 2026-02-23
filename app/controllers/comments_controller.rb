@@ -112,14 +112,12 @@ class CommentsController < ApplicationController
       AlaveteliConfiguration.enable_anti_spam
   end
 
-  # Sends an exception and blocks the comment depending on configuration.
+  # Logs spam detection and blocks the comment depending on configuration.
   def check_for_spam_comment
     return unless spam_comment?(@comment.body, @user)
 
-    if send_exception_notifications?
-      e = Exception.new("Possible spam annotation from user #{ @user.id }")
-      ExceptionNotifier.notify_exception(e, env: request.env)
-    end
+    # Log spam detection for monitoring
+    Rails.logger.info("Possible spam annotation from user #{@user.id}")
 
     return unless block_spam_comments?
 
