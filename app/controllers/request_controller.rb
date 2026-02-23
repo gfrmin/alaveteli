@@ -272,10 +272,8 @@ class RequestController < ApplicationController
         flash.now[:error] = _('There was an error with the reCAPTCHA. ' \
                               'Please try again.')
 
-        if send_exception_notifications?
-          e = Exception.new("Possible blocked non-spam (recaptcha) from #{@info_request.user_id}: #{@info_request.title}")
-          ExceptionNotifier.notify_exception(e, env: request.env)
-        end
+        # Log recaptcha failure for monitoring
+        Rails.logger.info("Possible blocked non-spam (recaptcha) from #{@info_request.user_id}: #{@info_request.title}")
 
         render action: 'new'
         return
@@ -688,12 +686,10 @@ class RequestController < ApplicationController
       AlaveteliConfiguration.enable_anti_spam
   end
 
-  # Sends an exception and blocks the comment depending on configuration.
+  # Logs spam detection and blocks the request depending on configuration.
   def handle_spam_subject(user)
-    if send_exception_notifications?
-      e = Exception.new("Spam request from user #{ user.id }")
-      ExceptionNotifier.notify_exception(e, env: request.env)
-    end
+    # Log spam detection for monitoring
+    Rails.logger.info("Spam request from user #{user.id}")
 
     if block_spam_subject?
       flash.now[:error] = _("Sorry, we're currently unable to send your " \
@@ -709,11 +705,11 @@ class RequestController < ApplicationController
   end
 
   def handle_blocked_ip(info_request)
-    if send_exception_notifications?
-      msg = "Possible spam request (ip_in_blocklist) from " \
-            "User##{info_request.user_id}: #{user_ip} (#{country_from_ip})"
-      ExceptionNotifier.notify_exception(Exception.new(msg), env: request.env)
-    end
+    msg = "Possible spam request (ip_in_blocklist) from " \
+          "User##{info_request.user_id}: #{user_ip} (#{country_from_ip})"
+
+    # Log blocked IP for monitoring
+    Rails.logger.info(msg)
 
     if block_restricted_country_ips?
       flash.now[:error] = _("Sorry, we're currently unable to send your " \

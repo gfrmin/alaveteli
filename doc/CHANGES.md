@@ -1,3 +1,11 @@
+# Unreleased
+
+## Highlighted Features
+
+* Stop sending exception notifications for anti-spam actions (rate limiting, spam
+  detection, blocked IPs). These expected behaviors are now logged to Rails logs
+  instead of generating email notifications.
+
 # 0.46.7.0
 
 ## Highlighted Features

@@ -426,11 +426,11 @@ class UserController < ApplicationController
   end
 
   def handle_blocked_ip(user)
-    if send_exception_notifications?
-      msg = "Possible spam signup (ip_in_blocklist) from " \
-            "#{user.email}: #{user_ip} (#{country_from_ip})"
-      ExceptionNotifier.notify_exception(Exception.new(msg), env: request.env)
-    end
+    msg = "Possible spam signup (ip_in_blocklist) from " \
+          "#{user.email}: #{user_ip} (#{country_from_ip})"
+
+    # Log blocked IP for monitoring
+    Rails.logger.info(msg)
 
     if block_restricted_country_ips?
       flash.now[:error] = _("Sorry, we're currently unable to create your " \
@@ -626,12 +626,8 @@ class UserController < ApplicationController
   end
 
   def handle_rate_limited_signup(user_ip, email_address)
-    if send_exception_notifications?
-      msg = "Rate limited signup from #{ user_ip } email: " \
-            " #{ email_address }"
-      e = Exception.new(msg)
-      ExceptionNotifier.notify_exception(e, env: request.env)
-    end
+    # Log rate-limited attempts for monitoring
+    Rails.logger.info "Rate limited signup from #{user_ip} email: #{email_address}"
 
     if block_rate_limited_ips?
       flash.now[:error] =
