@@ -173,9 +173,9 @@ class UserController < ApplicationController
 
       # Prevent signups from potential spammers
       if spam_user?(@user_signup)
-        handle_spam_user(@user_signup, 'signup') do
-          render action: 'sign'
-        end && return
+        handle_spam_user(@user_signup, 'signup') { render action: 'sign' }
+        render action: 'sign' unless performed?
+        return
       end
 
         @user_signup.email_confirmed = false
