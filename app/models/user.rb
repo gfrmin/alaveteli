@@ -359,7 +359,9 @@ class User < ApplicationRecord
 
   # When name is changed, also change the url name
   def name=(name)
-    write_attribute(:name, name.try(:strip))
+    sanitized = name.try(:gsub, /[\x00-\x1f\x7f]/, ' ')
+    sanitized = sanitized.try(:squeeze, ' ')
+    write_attribute(:name, sanitized.try(:strip))
   end
 
   def previous_names
