@@ -517,12 +517,17 @@ class UserController < ApplicationController
     post_redirect.save!
 
     url = confirm_url(email_token: post_redirect.email_token)
-    UserMailer.
-      confirm_login(
-        user,
-        post_redirect.reason_params,
-        url
-      ).deliver_now
+    begin
+      UserMailer.
+        confirm_login(
+          user,
+          post_redirect.reason_params,
+          url
+        ).deliver_now
+    rescue ArgumentError, Net::SMTPSyntaxError => e
+      logger.warn("Failed to send confirmation mail to user " \
+                   "#{user.id}: #{e.class} #{e.message}")
+    end
     render action: 'confirm'
   end
 
