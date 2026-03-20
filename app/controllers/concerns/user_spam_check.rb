@@ -42,7 +42,7 @@ module UserSpamCheck
         email_from_spam_domain?: 13,
         email_from_spam_tld?: 1,
         email_is_spam_format?: 3,
-        name_is_spam_format?: 10,
+        name_is_spam_format?: 13,
         about_me_includes_currency_symbol?: 0,
         about_me_is_link_only?: 0,
         about_me_is_spam_format?: 0,
