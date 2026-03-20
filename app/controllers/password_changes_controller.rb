@@ -50,9 +50,14 @@ class PasswordChangesController < ApplicationController
       post_redirect.save!
 
       url = confirm_url(email_token: post_redirect.email_token)
-      UserMailer.
-        confirm_login(@password_change_user, post_redirect.reason_params, url).
-          deliver_now
+      begin
+        UserMailer.
+          confirm_login(@password_change_user, post_redirect.reason_params, url).
+            deliver_now
+      rescue *OutgoingMessage.expected_send_errors => e
+        logger.warn "Failed to send password change email to " \
+                    "#{@password_change_user.id}: #{e.class} #{e.message}"
+      end
     end
 
     render :check_email
