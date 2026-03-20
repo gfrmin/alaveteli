@@ -73,6 +73,44 @@ RSpec.describe User, 'associations' do
   end
 end
 
+RSpec.describe User, "name sanitization" do
+  it 'strips carriage returns and newlines from names' do
+    user = User.new
+    user.name = "Test\r\nSpam Name"
+    expect(user.read_attribute(:name)).to eq('Test Spam Name')
+  end
+
+  it 'strips null bytes and other control characters from names' do
+    user = User.new
+    user.name = "Test\x00\x01\x1fName"
+    expect(user.read_attribute(:name)).to eq('Test Name')
+  end
+
+  it 'collapses multiple spaces after sanitization' do
+    user = User.new
+    user.name = "Test\r\n\r\nName"
+    expect(user.read_attribute(:name)).to eq('Test Name')
+  end
+
+  it 'strips leading and trailing whitespace' do
+    user = User.new
+    user.name = "  Test Name  "
+    expect(user.read_attribute(:name)).to eq('Test Name')
+  end
+
+  it 'preserves emoji and non-ASCII characters' do
+    user = User.new
+    user.name = "Test User"
+    expect(user.read_attribute(:name)).to eq("Test User")
+  end
+
+  it 'handles nil name' do
+    user = User.new
+    user.name = nil
+    expect(user.read_attribute(:name)).to be_nil
+  end
+end
+
 RSpec.describe User, "making up the URL name" do
   before do
     @user = User.new
@@ -86,6 +124,12 @@ RSpec.describe User, "making up the URL name" do
 
   it 'should not allow a numeric name' do
     @user.name = '1234'
+    @user.valid?
+    expect(@user.url_name).to eq('user')
+  end
+
+  it 'should fall back to "user" for non-Latin names' do
+    @user.name = '邢佳兴'
     @user.valid?
     expect(@user.url_name).to eq('user')
   end
