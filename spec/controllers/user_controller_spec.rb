@@ -702,6 +702,21 @@ RSpec.describe UserController do
       expect(deliveries[0].body).to include("not reveal your email")
     end
 
+    it "should log and not crash when confirmation mail delivery fails" do
+      allow_any_instance_of(Mail::Message).to receive(:deliver_now).
+        and_raise(ArgumentError, "SMTP To address may not be blank: []")
+
+      post :signup, params: {
+                      user_signup: {
+                        email: 'new@localhost',
+                        name: 'New Person',
+                        password: 'sillypassword',
+                        password_confirmation: 'sillypassword'
+                      }
+                    }
+      expect(response).to render_template('confirm')
+    end
+
     it "should send confirmation mail in other languages or different locales" do
       cookies[:locale] = 'es'
       post :signup, params: {
