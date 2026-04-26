@@ -35,6 +35,7 @@ class ApplicationController < ActionController::Base
   include ReadOnly
 
   # NOTE: a filter stops the chain if it redirects or renders something
+  before_action :reject_null_bytes
   before_action :html_response
   before_action :authentication_check
   before_action :check_in_post_redirect
@@ -455,6 +456,12 @@ class ApplicationController < ActionController::Base
   # Returns a Hash
   def sanitize_path(params)
     params.merge!(path: Rack::Utils.escape(params[:path])) if params.key?(:path)
+  end
+
+  def reject_null_bytes
+    if params.to_unsafe_h.values.flatten.any? { |v| v.is_a?(String) && v.include?("\0") }
+      head :bad_request
+    end
   end
 
   # Collect the current and available locales for the locale switcher
