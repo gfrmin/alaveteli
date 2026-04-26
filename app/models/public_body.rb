@@ -280,6 +280,8 @@ class PublicBody < ApplicationRecord
 
   # like find_by_url_name but also search historic url_name if none found
   def self.find_by_url_name_with_historic(name)
+    return if name.nil? || name.include?("\0")
+
     # If many bodies are found (usually because the url_name is the same
     # across locales) return any of them.
     found = joins(:translations).
