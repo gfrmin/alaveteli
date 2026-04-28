@@ -8,6 +8,11 @@
 * Block various action links via robots.txt (Laurent Savaete)
 * Remove "Previously known as" from profile pages due to performance issues
   (Gareth Rees)
+* Update actions and pages which set "noindex", "nofollow" crawler directives
+  (Graeme Porteous)
+* Make confirmation tokens one-time-use (Graeme Porteous)
+* Fix account switching via confirmation links (Graeme Porteous)
+* Prevent banned users replying through the response upload form (Gareth Rees)
 
 # 0.46.7.0
 
