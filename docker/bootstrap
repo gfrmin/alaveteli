@@ -14,11 +14,15 @@ if ! command -v docker >/dev/null 2>&1; then
   exit 1
 fi
 
-required_docker="20"
-current_docker="$(docker --version | awk 'match($0, /[0-9\.]+/) {print substr($0,RSTART,RLENGTH)}')"
-if [ "$(printf '%s\n' "$required_docker" "$current_docker" | sort -V | head -n1)" != "$required_docker" ]; then
-  error_msg "Requires Docker v$required_docker or later. Please upgrade and rerun."
-  exit 1
+if command -v podman >/dev/null 2>&1; then
+  : # Podman provides Docker-compatible API; skip version check
+else
+  required_docker="20"
+  current_docker="$(docker --version 2>/dev/null | awk 'match($0, /[0-9\.]+/) {print substr($0,RSTART,RLENGTH)}')"
+  if [ "$(printf '%s\n' "$required_docker" "$current_docker" | sort -V | head -n1)" != "$required_docker" ]; then
+    error_msg "Requires Docker v$required_docker or later. Please upgrade and rerun."
+    exit 1
+  fi
 fi
 
 themes_dir="$(dirname $(pwd))/alaveteli-themes"
