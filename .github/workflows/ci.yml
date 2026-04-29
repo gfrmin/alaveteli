@@ -120,6 +120,10 @@ jobs:
       run: |
         bundle exec rspec --format Fivemat
 
+    - name: Run theme tests
+      run: |
+        bundle exec rspec lib/themes/*/spec --format Fivemat
+
     - name: Run nested gems tests
       run: |
         bundle exec rspec gems/*/spec --format Fivemat

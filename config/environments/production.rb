@@ -126,6 +126,8 @@ Rails.application.configure do
 
     middleware.use ExceptionNotification::Rack,
       ignore_exceptions: ignored_exceptions,
+      error_grouping: true,
+      error_grouping_period: 300,
       email: {
         email_prefix: exception_notifier_prefix,
         sender_address: AlaveteliConfiguration.exception_notifications_from,
