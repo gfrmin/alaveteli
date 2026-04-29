@@ -64,7 +64,7 @@ FORCE_SSL: true
 #   ISO_COUNTRY_CODE: GB
 #
 # ---
-ISO_COUNTRY_CODE: GB
+ISO_COUNTRY_CODE: HK
 
 # ISO currency code of the currency Alaveteli Professional cost should be
 # displayed in.
@@ -81,7 +81,7 @@ ISO_COUNTRY_CODE: GB
 #   ISO_CURRENCY_CODE: GBP
 #
 # ---
-ISO_CURRENCY_CODE: GBP
+ISO_CURRENCY_CODE: HKD
 
 # This is the timezone that times and dates are displayed in
 # If not set defaults to UTC.
@@ -94,7 +94,7 @@ ISO_CURRENCY_CODE: GBP
 #   TIME_ZONE: Europe/London
 #
 # ---
-TIME_ZONE: UTC
+TIME_ZONE: Asia/Hong_Kong
 
 # These feeds are displayed accordingly on the Alaveteli "blog" page. Currently
 # WordPress is the only "officially supported" external blog feed, but other
@@ -163,7 +163,7 @@ TWITTER_WIDGET_ID: ''
 #   AVAILABLE_LOCALES: 'en es'
 #
 # ---
-AVAILABLE_LOCALES: 'en'
+AVAILABLE_LOCALES: 'en zh_HK'
 
 # Nominate one of the AVAILABLE_LOCALES locales as the default
 #
@@ -266,7 +266,7 @@ FRONTPAGE_PUBLICBODY_EXAMPLES: ''
 #
 # ---
 THEME_URLS:
-  - 'https://github.com/mysociety/alavetelitheme.git'
+  - 'https://github.com/gfrmin/accessinfohktheme.git'
 
 # When rails-post-deploy installs the themes, it will try to use the branch
 # specified by THEME_BRANCH first. If the branch doesn't exist it will fall
@@ -668,6 +668,19 @@ VARNISH_HOSTS: null
 #
 # ---
 GA_CODE: ''
+
+# PostHog analytics key. Adding a value here will enable PostHog analytics on
+# all non-admin pages for non-admin users. Get your project API key from
+# https://us.posthog.com/settings/project
+#
+# POSTHOG_KEY - String (default: '')
+#
+# Examples:
+#
+#   POSTHOG_KEY: 'phc_abc123def456'
+#
+# ---
+POSTHOG_KEY: ''
 
 # If you want to override all the public body request emails with your own
 # email address so that request emails that would normally go to the public

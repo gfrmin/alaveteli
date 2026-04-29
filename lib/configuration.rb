@@ -69,6 +69,7 @@ module AlaveteliConfiguration
       FORWARD_PRO_NONBOUNCE_RESPONSES_TO: 'pro-user-support@localhost',
       FRONTPAGE_PUBLICBODY_EXAMPLES: '',
       GA_CODE: '',
+      POSTHOG_KEY: '',
       GEOIP_DATABASE: 'vendor/data/GeoLite2-Country.mmdb',
       INCOMING_EMAIL_DOMAIN: 'localhost',
       INCOMING_EMAIL_PREFIX: 'foi+',
