@@ -114,8 +114,15 @@ class RequestController < ApplicationController
   end
 
   # Requests similar to this one
+  SIMILAR_MAX_PAGE = 5
+
   def similar
     short_cache
+
+    if @page > SIMILAR_MAX_PAGE
+      raise ActiveRecord::RecordNotFound,
+        "Sorry. No pages after #{SIMILAR_MAX_PAGE}."
+    end
 
     @info_request = InfoRequest.find_by_url_title!(params[:url_title])
 

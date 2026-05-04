@@ -11,6 +11,12 @@ User=<%= user %>
 Group=<%= user %>
 UMask=0002
 
+# Xapian opens many files per database; under crawler bursts (~/similar
+# pagination, /search) the default 1024 soft FD limit is easily exhausted,
+# which surfaces as "Too many open files" from Xapian and as spurious
+# "cannot load such file" LoadErrors when require runs out of FDs.
+LimitNOFILE=65536
+
 WorkingDirectory=<%= vhost_dir %>/<%= vcspath %>
 
 ExecStart=/bin/bash -lc 'bundle exec puma -C config/puma.rb'

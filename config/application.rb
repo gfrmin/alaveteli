@@ -120,6 +120,9 @@ module Alaveteli
     # Strip non-UTF-8 request parameters
     config.middleware.insert 0, Rack::UTF8Sanitizer
 
+    # Throttle abusive crawlers before they reach Rails / Xapian.
+    config.middleware.use Rack::Attack
+
     # Allow the generation of full URLs in emails
     config.action_mailer.default_url_options = { host: AlaveteliConfiguration.domain }
 

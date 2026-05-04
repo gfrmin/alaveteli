@@ -1,21 +1,53 @@
 # See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
+#
+# Patterns are written so they match both /path and /path?query — the
+# previous form */path/* required a literal "/" after the path component
+# and so failed to match /path?query strings, letting bots hammer expensive
+# endpoints like /request/*/similar?page=N.
+#
+# Where the path token could appear inside a request title (e.g. a request
+# titled "new_territories_…" produces url_title containing /new…), we
+# anchor with $ and list query-string and subpath variants explicitly so
+# we don't accidentally hide legitimate request pages.
 
 User-agent: *
+Disallow: */annotate
 Disallow: */annotate/*
+Disallow: */annotate?*
+Disallow: */new$
 Disallow: */new/*
+Disallow: */new?*
+Disallow: */search$
 Disallow: */search/*
+Disallow: */search?*
+Disallow: */similar$
 Disallow: */similar/*
+Disallow: */similar?*
+Disallow: */track$
 Disallow: */track/*
+Disallow: */track?*
+Disallow: */upload$
 Disallow: */upload/*
+Disallow: */upload?*
+Disallow: */user/contact
 Disallow: */user/contact/*
+Disallow: */user/contact?*
+Disallow: */feed$
 Disallow: */feed/*
+Disallow: */feed?*
+Disallow: */profile
 Disallow: */profile/*
+Disallow: */profile?*
 Disallow: */signin*
 Disallow: */tor*
 Allow: */request/*/response/*/attach/*
+Disallow: */request/*/response$
 Disallow: */request/*/response/*
+Disallow: */request/*/response?*
 Disallow: */request/*/download*
+Disallow: */change_request$
 Disallow: */change_request/*
+Disallow: */change_request?*
 Disallow: */outgoing_messages/*/mail_server_logs*
 Disallow: */outgoing_messages/*/delivery_status*
 Disallow: *?*update_status=1*

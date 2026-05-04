@@ -1871,6 +1871,25 @@ RSpec.describe RequestController, "when showing similar requests" do
     }.to raise_error(ActiveRecord::RecordNotFound)
   end
 
+  it "raises ActiveRecord::RecordNotFound past SIMILAR_MAX_PAGE before
+      hitting Xapian (so crawlers can't blow file descriptors)" do
+    expect(ActsAsXapian::Similar).not_to receive(:new)
+    expect {
+      get :similar, params: {
+        url_title: badger_request.url_title,
+        page: RequestController::SIMILAR_MAX_PAGE + 1
+      }
+    }.to raise_error(ActiveRecord::RecordNotFound)
+  end
+
+  it "still serves the last allowed page" do
+    get :similar, params: {
+      url_title: badger_request.url_title,
+      page: RequestController::SIMILAR_MAX_PAGE
+    }
+    expect(response).to render_template("request/similar")
+  end
+
   it 'raises ActiveRecord::RecordNotFound if the request is embargoed' do
     badger_request.create_embargo(publish_at: Time.zone.now + 3.days)
     expect {
