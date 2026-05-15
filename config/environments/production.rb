@@ -124,10 +124,56 @@ Rails.application.configure do
       URI::InvalidURIError
     ) + ExceptionNotifier.ignored_exceptions
 
+    infrastructure_cause_names = %w(
+      PG::DiskFull
+      PG::OutOfMemory
+      PG::ConnectionBad
+      PG::UnableToSend
+      PG::AdminShutdown
+      PG::CrashShutdown
+      PG::CannotConnectNow
+      Redis::CannotConnectError
+      Dalli::RingError
+      Errno::ENOSPC
+      Errno::ENOMEM
+    )
+
+    ignore_infrastructure_cause = ->(_env, exception) {
+      cause = exception
+      while cause
+        return true if infrastructure_cause_names.include?(cause.class.name)
+        cause = cause.cause
+      end
+      false
+    }
+
+    exception_email_hourly_cap = 20
+
+    rate_limit_notifications = ->(_exception, accumulated_count) {
+      grouping_factor = Math.log2(accumulated_count)
+      return false unless grouping_factor.to_i == grouping_factor
+
+      bucket_key = "exception_notifier:rate:#{Time.now.to_i / 3600}"
+      sent_so_far = Rails.cache.increment(
+        bucket_key, 1, expires_in: 1.hour, initial: 0
+      )
+      allowed = sent_so_far.nil? || sent_so_far <= exception_email_hourly_cap
+      unless allowed
+        Rails.logger.warn(
+          "[exception_notifier] dropped notification " \
+          "(hourly cap #{exception_email_hourly_cap} exceeded, " \
+          "sent_so_far=#{sent_so_far})"
+        )
+      end
+      allowed
+    }
+
     middleware.use ExceptionNotification::Rack,
       ignore_exceptions: ignored_exceptions,
+      ignore_if: ignore_infrastructure_cause,
       error_grouping: true,
-      error_grouping_period: 300,
+      error_grouping_period: 3600,
+      notification_trigger: rate_limit_notifications,
       email: {
         email_prefix: exception_notifier_prefix,
         sender_address: AlaveteliConfiguration.exception_notifications_from,
