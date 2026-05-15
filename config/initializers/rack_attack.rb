@@ -51,6 +51,15 @@ class Rack::Attack
     req.remote_ip if req.path == '/profile/sign_in'
   end
 
+  # Distributed variant of the same attack uses too many client IPs for the
+  # per-IP throttle above to catch. The double-URL-encoded "%2525" signature
+  # only appears when /profile/sign_in is reached via multiple chained
+  # redirects re-encoding the r= param — bot-only, no legitimate request
+  # produces it. Drop with 403 before any Rails work.
+  blocklist('signin/recursive-loop') do |req|
+    req.path == '/profile/sign_in' && req.query_string.include?('%2525')
+  end
+
   # Coarse backstop for everything else.
   throttle('all/ip', limit: 300, period: 1.minute, &:remote_ip)
 
