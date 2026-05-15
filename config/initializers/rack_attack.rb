@@ -44,6 +44,13 @@ class Rack::Attack
     end
   end
 
+  # Bots hammer /profile/sign_in?r=… recursively with leaked
+  # password-reset tokens, generating exponentially nested URLs and
+  # saturating nginx connections before the 300/min backstop catches them.
+  throttle('signin/ip', limit: 20, period: 1.minute) do |req|
+    req.remote_ip if req.path == '/profile/sign_in'
+  end
+
   # Coarse backstop for everything else.
   throttle('all/ip', limit: 300, period: 1.minute, &:remote_ip)
 
