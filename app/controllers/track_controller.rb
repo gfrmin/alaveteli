@@ -40,7 +40,8 @@ class TrackController < ApplicationController
     elsif @view == 'successful'
       @track_thing = TrackThing.create_track_for_all_successful_requests
     else
-      raise "unknown request list view " + @view.to_s
+      raise ApplicationController::RouteNotFound,
+            "unknown request list view #{@view}"
     end
 
     return atom_feed_internal if params[:feed] == 'feed'
@@ -163,7 +164,8 @@ class TrackController < ApplicationController
   def atom_feed
     @track_thing = TrackThing.find(params[:track_id].to_i)
     if @track_thing.track_medium != 'feed'
-      raise "can only view feeds for feed tracks, not email ones"
+      raise ApplicationController::RouteNotFound,
+            "atom_feed: track_thing #{@track_thing.id} is not a feed track"
     end
 
     redirect_to do_track_url(@track_thing, 'feed'), status: :moved_permanently

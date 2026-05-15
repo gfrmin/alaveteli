@@ -380,6 +380,12 @@ RSpec.describe TrackController do
       expect(flash[:error]).to match('too long')
       expect(response).to redirect_to("/list")
     end
+
+    it "raises RouteNotFound (404) for an unknown view" do
+      expect {
+        get :track_list, params: { view: 'garbage', feed: 'feed' }
+      }.to raise_error(ApplicationController::RouteNotFound)
+    end
   end
 
   describe "PUT #update" do

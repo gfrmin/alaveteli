@@ -434,6 +434,13 @@ Rails.application.routes.draw do
         :as => :track_request,
         :feed => /(track|feed)/,
         :via => :get
+  # Stale aggregator URLs from before /list/all was redirected (see line 85).
+  # Without these, aggregators hitting /feed/list/all raise a RuntimeError
+  # in track#track_list and trigger exception-notifier emails.
+  get '/feed/list/all'     => redirect('/feed/list')
+  get '/feed/list/recent'  => redirect('/feed/list')
+  get '/track/list/all'    => redirect('/track/list')
+  get '/track/list/recent' => redirect('/track/list')
   match '/:feed/list/:view' => 'track#track_list',
         :as => :track_list,
         :view => nil,

@@ -30,7 +30,8 @@ module Classifiable
              when 'requires_admin'
                _('This request requires administrator attention')
              else
-               raise 'Unsupported state'
+               raise ApplicationController::RouteNotFound,
+                     "Unsupported described_state: #{@described_state}"
              end
 
     render 'classifications/message'
