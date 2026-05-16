@@ -1,32 +1,142 @@
-# Unreleased
+# develop
 
 ## Highlighted Features
 
-* Stop sending exception notifications for anti-spam actions (rate limiting, spam
-  detection, blocked IPs). These expected behaviors are now logged to Rails logs
-  instead of generating email notifications.
-* Validate profile photo content type before ImageMagick processing
-  (Graeme Porteous)
-* Block various action links via robots.txt (Laurent Savaete)
+* Ensure only readable requests can be added to a Project (Gareth Rees)
 * Remove "Previously known as" from profile pages due to performance issues
   (Gareth Rees)
+* Only allow Citations to be added for external URLs (Gareth Rees)
+* Prevent banned users replying through the response upload form (Gareth Rees)
+* Allow censor rules to ignore diacritics (Gareth Rees)
+* Allow censor rules to be case insensitive (Gareth Rees)
+* Add Content Security Policy with nonce-based script protection (Graeme
+  Porteous)
+* Fix missing batch sent flash message after creating a batch (Graeme Porteous)
+* Replace Mahoro with Marcel for MIME type detection (Graeme Porteous)
 * Update actions and pages which set "noindex", "nofollow" crawler directives
   (Graeme Porteous)
 * Make confirmation tokens one-time-use (Graeme Porteous)
 * Fix account switching via confirmation links (Graeme Porteous)
-* Prevent banned users replying through the response upload form (Gareth Rees)
+* Render public body category notes (Gareth Rees)
+* Prevent external search indexing of password change form (Gareth Rees)
+* Allow customisation of text masks (Gareth Rees)
+* Strip ActionText attachments from Project rich text fields (Graeme Porteous)
+* Validate profile photo content type before ImageMagick processing
+  (Graeme Porteous)
+* Restrict visibility of hidden and requester-only requests in projects (Gareth
+  Rees, Graeme Porteous)
+* Prevent banned Pro subscribers creating requests (Gareth Rees)
+* Integrate ActionMailbox for better inbound email processing (Graeme Porteous)
+* Allow responses to be received from any source (Graeme Porteous)
+* Fix hidden request snippets appearing in embargoed batch lists (Gareth Rees)
+* Fix project membership bypassing hidden request prominence (Graeme Porteous)
+* Fix public token bypassing hidden request prominence (Graeme Porteous)
+* Add exception notifications to background job failures (Graeme Porteous)
+* Fix visibility check for attachments when downloading a batch request as a zip
+  file (Gareth Rees)
+* Fix censor rules not being applied to attachment filenames in downloads
+  (Gareth Rees)
+* Add ability to erase attachments (Graeme Porteous)
+* Added Web Share API option on request pages (Lucas Cumsille Montesinos)
+* Add prioritisation indication of admin summary todos (Gareth Rees)
+* Update Exim message ID matching (Graeme Porteous)
+* Allow erasure of underlying raw email data (Graeme Porteous, Gareth Rees)
+* Restore logging of :email parameters (Gareth Rees)
+* Fix importing holidays from iCal feed (Gareth Rees)
+* Ability to search users by tag in admin interface (Gareth Rees)
+* Add ATI Network Impacts Showcase (Lucas Cumsille Montesinos, Gareth Rees)
+* Improve raw email testing fixtures (Graeme Porteous)
+* Add support for Debian 13 "Trixie" (Graeme Porteous)
+* Add support for Ubuntu 24.04 LTS "Nobel Numbat" (Graeme Porteous)
+* Add new script to reconcile theme (Graeme Porteous)
+* Dropped support for generating PDF of request correspondence (Graeme Porteous)
+* Drop support for Ruby 3.3 (Graeme Porteous)
+* Drop support for Ruby 3.2 (Graeme Porteous)
+* Block various action links via robots.txt (Laurent Savaete)
 
-# 0.46.7.0
+## Upgrade Notes
 
-## Highlighted Features
+* _Note:_ This release now allows responses to be received from any source,
+  1. Postfix/Exim `./script/mailin` pipe, 2. POP poller or 3. ActionMailbox
+  While you can have multiple sources configured we recommend migrating to
+  ActionMailbox as the others are depreicated and will be removed in a future
+  release.
+  See: https://github.com/mysociety/alaveteli/wiki/ActionMailbox-Migration-Guide
 
-Prevent token rebinding when it already has a user (Gareth Rees)
+* _Required:_ After ActionMailbox migration please backup `config/master.key`.
+  This file gets generated automatically and is the private encryption key for
+  the credentials. Without it the application can't read credentials. If you
+  ever move servers or reinstall Alaveteli then you will need this file. See:
+  https://guides.rubyonrails.org/security.html#custom-credentials
 
-# 0.46.6.0
+* _Required:_ Please update your `config/storage.yml` file to include a
+  production configuration for `inbound_emails`. See
+  `config/storage.yml-example` as an example.
 
-## Highlighted Features
+* _Optional:_ The new ATI Network Impacts Showcase page can be disabled by
+  adding a configuration setting in the theme controller patches:
 
-* Prevent token rebinding for non-normal circumstance (Gareth Rees)
+    Rails.application.config.after_initialize do
+      AtiNetworkController.showcase_enabled = false
+    end
+
+* **Note:** A Content Security Policy (CSP) has been enabled with nonce-based
+  script protection. If your theme includes any inline `<script>` tags, replace
+  them with Rails helpers that include `nonce: true`:
+
+  For inline scripts, use `javascript_tag` with `nonce: true`:
+
+      <%= javascript_tag nonce: true do %>
+        // your JavaScript here
+      <% end %>
+
+  For external scripts, use `javascript_include_tag` with `nonce: true`:
+
+      <%= javascript_include_tag "https://example.com/script.js", nonce: true %>
+
+* _Optional:_ Text masks can now be customised to allow fine tuning of the
+  default redactions that Alaveteli applies. Here are some examples of how to
+  add, remove or change masks using the new API.
+
+    # THEME/lib/model_patches.rb
+    Rails.configuration.to_prepare do
+      # Add a new mask specific to your site
+      AlaveteliTextMasker.add_mask(:reference_number, pattern: /\d{9} replacement: '[reference number]')
+
+      # Remove a default mask (not recommended!)
+      AlaveteliTextMasker.remove_mask(:email_address)
+
+      # Change a default mask
+      AlaveteliTextMasker.replace_mask(:mobile_number, pattern: /\d+/, replacement: '[cell number]')
+
+      # Change only a default mask's regexp pattern
+      AlaveteliTextMasker.replace_mask(:mobile_number, pattern: /\d+/)
+
+      # Change only a default mask's replacement
+      AlaveteliTextMasker.replace_mask(:mobile_number, replacement: '[cell number]')
+    end
+
+* _Optional:_ Censor rules can now be made case insensitive. This is disabled by
+  default while we beta test it before full release. Before then you can enable
+  it by running:
+
+    bin/rails runner "AlaveteliFeatures.backend.enable(:censor_rule_case_sensitive)"
+
+* _Optional:_ Censor rules can now ignore diacritics. This is disabled by
+  default while we beta test it before full release. Before then you can enable
+  it by running:
+
+    bin/rails runner "AlaveteliFeatures.backend.enable(:censor_rule_ignore_diacritics)"
+
+* **Note:** `FACEBOOK_USERNAME` and `TWITTER_USERNAME` configuration values are
+  deprecated and will be removed after this release.
+
+### Changed Templates
+
+The following templates have been changed. Please use `script/reconcile-theme`
+to update overrides in your theme to match the new templates.
+
+    None yet
 
 # 0.46.5.0
 
@@ -101,7 +211,6 @@ Prevent token rebinding when it already has a user (Gareth Rees)
 
 ## Highlighted Features
 
-* Complete thread-safety fix for acts_as_xapian metadata dictionaries (gfrmin)
 * Bump bundler to 2.7.2 to prevent warnings (Graeme Porteous)
 
 # 0.46.0.0
@@ -326,6 +435,12 @@ to match the new templates.
     app/views/user/signchangeemail_confirm.html.erb
     app/views/user/wrong_user.html.erb
     app/views/user_mailer/already_registered.text.erb
+
+# 0.45.6.0
+
+## Highlighted Features
+
+* Sanitise RTF to HTML conversion (Gareth Rees)
 
 # 0.45.5.0
 
@@ -669,6 +784,12 @@ to match the new templates.
     app/views/widgets/new.html.erb
     app/views/widgets/show.html.erb
 
+# 0.44.1.0
+
+## Highlighted Features
+
+* Sanitise RTF to HTML conversion (Gareth Rees)
+
 # 0.44.0.3
 
 ## Highlighted Features
@@ -807,6 +928,12 @@ to match the new templates.
     app/views/request/request_subtitle/allow_new_responses_from/_nobody.html.erb
     app/views/user/show/_show_profile.html.erb
     app/views/users/messages/rate_limited.html.erb
+
+# 0.43.3.0
+
+## Highlighted Features
+
+* Sanitise RTF to HTML conversion (Gareth Rees)
 
 # 0.43.2.2
 
@@ -974,6 +1101,12 @@ to match the new templates.
     app/views/request/new.html.erb
     app/views/request/preview.html.erb
 
+# 0.42.1.0
+
+## Highlighted Features
+
+* Sanitise RTF to HTML conversion (Gareth Rees)
+
 # 0.42.0.2
 
 ## Highlighted Features
@@ -1134,6 +1267,12 @@ to match the new templates.
     app/views/request/new_defunct.html.erb
     app/views/request/show.html.erb
     app/views/request/show.text.erb
+
+# 0.41.2.0
+
+## Highlighted Features
+
+* Sanitise RTF to HTML conversion (Gareth Rees)
 
 # 0.41.1.2
 
@@ -1329,6 +1468,12 @@ to match the new templates.
     app/views/track/atom_feed.atom.erb
     app/views/track_mailer/event_digest.text.erb
     app/views/user/_show_user_info.html.erb
+
+# 0.40.2.0
+
+## Highlighted Features
+
+* Sanitise RTF to HTML conversion (Gareth Rees)
 
 # 0.40.1.3
 
@@ -1538,6 +1683,12 @@ to match the new templates.
     app/views/track_mailer/event_digest.text.erb
     app/views/user/bad_token.html.erb
 
+# 0.39.2.0
+
+## Highlighted Features
+
+* Sanitise RTF to HTML conversion (Gareth Rees)
+
 # 0.39.1.8
 
 ## Highlighted Features
@@ -1722,6 +1873,12 @@ to match the new templates.
     app/views/user/show.html.erb
     app/views/user/show/_show_same_name_users.html.erb
     app/views/user/sign.html.erb
+
+# 0.38.5.0
+
+## Highlighted Features
+
+* Sanitise RTF to HTML conversion (Gareth Rees)
 
 # 0.38.4.5
 
