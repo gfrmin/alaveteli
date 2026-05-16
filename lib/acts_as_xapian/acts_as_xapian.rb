@@ -351,7 +351,7 @@ module ActsAsXapian
 
     # for indexing
     @@writable_db = Xapian::WritableDatabase.new(full_path, Xapian::DB_CREATE_OR_OPEN | _xapian_backend_format(full_path))
-    @@enquire = Xapian::Enquire.new(@@writable_db)
+    self.enquire = Xapian::Enquire.new(@@writable_db)
     @@term_generator = Xapian::TermGenerator.new
     @@term_generator.set_flags(Xapian::TermGenerator::FLAG_SPELLING, 0)
     @@term_generator.database = @@writable_db
