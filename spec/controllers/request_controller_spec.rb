@@ -1367,11 +1367,13 @@ RSpec.describe RequestController, "when creating a new request" do
     let(:body) { FactoryBot.create(:public_body) }
 
     context 'when given a string containing unicode characters' do
-      it 'converts the string to ASCII' do
+      it 'logs the spam detection with ASCII-converted title' do
         allow(AlaveteliConfiguration).to receive(:block_spam_requests).
           and_return(true)
         sign_in user
         title = "▩█ -Free Ɓrazzers Password Hăck Premium Account List 2017 ᒬᒬ"
+        expect(Rails.logger).to receive(:info).
+          with(/Spam request from user #{ user.id }/)
         post :new, params: {
           info_request: {
             public_body_id: body.id,
@@ -1384,8 +1386,6 @@ RSpec.describe RequestController, "when creating a new request" do
           submitted_new_request: 1,
           preview: 0
         }
-        mail = ActionMailer::Base.deliveries.first
-        expect(mail.subject).to match(/Spam request from user #{ user.id }/)
       end
     end
 
@@ -1398,8 +1398,10 @@ RSpec.describe RequestController, "when creating a new request" do
           and_return(true)
       end
 
-      it 'sends an exception notification' do
+      it 'logs the spam detection' do
         sign_in user
+        expect(Rails.logger).to receive(:info).
+          with(/Spam request from user #{ user.id }/)
         post :new,
              params: {
                info_request: {
@@ -1413,8 +1415,6 @@ RSpec.describe RequestController, "when creating a new request" do
                submitted_new_request: 1,
                preview: 0
              }
-        mail = ActionMailer::Base.deliveries.first
-        expect(mail.subject).to match(/Spam request from user #{ user.id }/)
       end
     end
 
@@ -1423,8 +1423,10 @@ RSpec.describe RequestController, "when creating a new request" do
         allow(@controller).to receive(:block_spam_subject?).and_return(true)
       end
 
-      it 'sends an exception notification' do
+      it 'logs the spam detection' do
         sign_in user
+        expect(Rails.logger).to receive(:info).
+          with(/Spam request from user #{ user.id }/)
         post :new, params: {
           info_request: {
             public_body_id: body.id,
@@ -1437,8 +1439,6 @@ RSpec.describe RequestController, "when creating a new request" do
           submitted_new_request: 1,
           preview: 0
         }
-        mail = ActionMailer::Base.deliveries.first
-        expect(mail.subject).to match(/Spam request from user #{ user.id }/)
       end
 
       it 'shows an error message' do
@@ -1506,8 +1506,10 @@ RSpec.describe RequestController, "when creating a new request" do
         allow(@controller).to receive(:block_spam_subject?).and_return(false)
       end
 
-      it 'sends an exception notification' do
+      it 'logs the spam detection' do
         sign_in user
+        expect(Rails.logger).to receive(:info).
+          with(/Spam request from user #{ user.id }/)
         post :new, params: {
           info_request: {
             public_body_id: body.id,
@@ -1520,8 +1522,6 @@ RSpec.describe RequestController, "when creating a new request" do
           submitted_new_request: 1,
           preview: 0
         }
-        mail = ActionMailer::Base.deliveries.first
-        expect(mail.subject).to match(/Spam request from user #{ user.id }/)
       end
 
       it 'allows the request' do
@@ -1596,8 +1596,10 @@ RSpec.describe RequestController, "when creating a new request" do
           to receive(:block_restricted_country_ips?).and_return(true)
       end
 
-      it 'sends an exception notification' do
+      it 'logs the blocked IP attempt' do
         sign_in user
+        expect(Rails.logger).to receive(:info).
+          with(/\(ip_in_blocklist\) from User##{ user.id }/)
         post :new, params: {
           info_request: {
             public_body_id: body.id,
@@ -1610,9 +1612,6 @@ RSpec.describe RequestController, "when creating a new request" do
           submitted_new_request: 1,
           preview: 0
         }
-        mail = ActionMailer::Base.deliveries.first
-        expect(mail.subject).
-          to match(/\(ip_in_blocklist\) from User##{ user.id }/)
       end
 
       it 'shows an error message' do
@@ -1680,8 +1679,10 @@ RSpec.describe RequestController, "when creating a new request" do
           to receive(:block_restricted_country_ips?).and_return(false)
       end
 
-      it 'sends an exception notification' do
+      it 'logs the blocked IP attempt' do
         sign_in user
+        expect(Rails.logger).to receive(:info).
+          with(/\(ip_in_blocklist\) from User##{ user.id }/)
         post :new, params: {
           info_request: {
             public_body_id: body.id,
@@ -1694,9 +1695,6 @@ RSpec.describe RequestController, "when creating a new request" do
           submitted_new_request: 1,
           preview: 0
         }
-        mail = ActionMailer::Base.deliveries.first
-        expect(mail.subject).
-          to match(/\(ip_in_blocklist\) from User##{ user.id }/)
       end
 
       it 'allows the request' do

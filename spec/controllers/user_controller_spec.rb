@@ -1111,7 +1111,7 @@ RSpec.describe UserController do
                         }
         end
 
-        it 'allows the signup' do
+        it 'blocks the signup' do
           post :signup, params: {
                           user_signup: {
                             email: 'spammer@example.com',
@@ -1120,7 +1120,7 @@ RSpec.describe UserController do
                             password_confirmation: 'sillypassword'
                           }
                         }
-          expect(User.where(email: 'spammer@example.com').count).to eq(1)
+          expect(User.where(email: 'spammer@example.com').count).to eq(0)
         end
       end
     end
