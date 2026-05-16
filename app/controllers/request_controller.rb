@@ -555,7 +555,7 @@ class RequestController < ApplicationController
 
     # Reconstruct the params
     # first the public body (by URL name or id)
-    params[:info_request][:public_body_id] =
+    params[:info_request][:public_body_id] ||=
       if params[:url_name]
         if params[:url_name].match(/^[0-9]+$/)
           PublicBody.find(params[:url_name]).id
