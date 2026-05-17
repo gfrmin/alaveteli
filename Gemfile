@@ -190,6 +190,11 @@ gem 'excel_analyzer', path: 'gems/excel_analyzer', require: false
 # AI insights
 gem "ollama-ai", "~> 1.3.0"
 
+# Server-side PostHog event capture (paired with the posthog-js snippet in
+# the theme). Sends events from controllers for form submissions and
+# state changes that don't show up client-side.
+gem 'posthog-ruby', '~> 2.7.0'
+
 group :test do
   gem 'fivemat', '~> 1.3.7'
   gem 'webmock', '~> 3.26.1'

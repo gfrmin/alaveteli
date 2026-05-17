@@ -11,6 +11,7 @@ class GeneralController < ApplicationController
   skip_before_action :html_response, only: :version
 
   before_action :redirect_pros_to_dashboard, only: :frontpage
+  after_action :track_search_performed, only: :search
 
   # New, improved front page!
   def frontpage
@@ -187,5 +188,16 @@ class GeneralController < ApplicationController
     if feature_enabled?(:alaveteli_pro) && current_user && current_user.is_pro?
       redirect_to alaveteli_pro_dashboard_path
     end
+  end
+
+  def track_search_performed
+    return if @query.blank?
+    track('search_performed',
+      query: @query,
+      total_hits: @total_hits,
+      variety: @variety_postfix,
+      sort: @sortby,
+      page: @page,
+      locale: AlaveteliLocalization.locale)
   end
 end

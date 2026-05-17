@@ -31,6 +31,43 @@ module AnalyticsHelper
     true
   end
 
+  # Stable identifier for the visitor on this session. Signed-in users get
+  # a deterministic id from User#id (so events follow them across devices);
+  # anonymous visitors get a per-session UUID stored in the Rails session
+  # cookie. Mirrored to the JS snippet via posthog.identify so server and
+  # client events land on the same person.
+  def analytics_distinct_id
+    if current_user&.id
+      "user_#{current_user.id}"
+    else
+      session[:posthog_distinct_id] ||= SecureRandom.uuid
+    end
+  end
+
+  # Fire a server-side PostHog event. Safe to call when posthog_key is
+  # blank (initializer skipped → config.x.posthog is nil → noop) and from
+  # bot-flagged requests (skipped via analytics_eligible?). Anonymous
+  # events are sent with $process_person_profile:false so they don't burn
+  # person-profile quota under the identified_only mode set in the JS init.
+  def track(event, properties = {})
+    return unless analytics_eligible?
+    return unless defined?(POSTHOG_CLIENT)
+
+    props = {
+      '$current_url' => request.url,
+      '$lib' => 'posthog-ruby-server'
+    }.merge(properties.stringify_keys)
+    props['$process_person_profile'] = false unless current_user
+
+    POSTHOG_CLIENT.capture(
+      distinct_id: analytics_distinct_id,
+      event: event.to_s,
+      properties: props
+    )
+  rescue StandardError => e
+    Rails.logger.warn "posthog track failed: #{e.class}: #{e.message}"
+  end
+
   # Public: Constructs a String consisting of a Google Analytics (GA) tracking
   # event function call with the (mandatory) event category and action params
   # and optional label and value params.

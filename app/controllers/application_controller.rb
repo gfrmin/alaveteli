@@ -34,6 +34,8 @@ class ApplicationController < ActionController::Base
   include AlaveteliPro::PostRedirectHandler
   include ReadOnly
   include RobotsHeaders
+  include AnalyticsHelper
+  helper_method :analytics_eligible?, :analytics_distinct_id
 
   # NOTE: a filter stops the chain if it redirects or renders something
   before_action :reject_null_bytes

@@ -86,6 +86,15 @@ class PublicBodyController < ApplicationController
                              title: @track_thing.params[:title_in_rss],
                              has_json: true } ]
 
+      track('authority_viewed',
+        body_id: @public_body.id,
+        body_name: @public_body.name,
+        body_url_name: @public_body.url_name,
+        request_count: @number_of_visible_requests,
+        view: @view,
+        page: @page,
+        locale: @locale)
+
       respond_to do |format|
         format.html do
           @has_json = true

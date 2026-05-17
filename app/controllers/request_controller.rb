@@ -291,6 +291,14 @@ class RequestController < ApplicationController
     # This automatically saves dependent objects, such as @outgoing_message, in the same transaction
     @info_request.save!
 
+    track('request_submitted',
+      request_id: @info_request.id,
+      url_title: @info_request.url_title,
+      authority_id: @info_request.public_body_id,
+      authority_name: @info_request.public_body&.name,
+      language: AlaveteliLocalization.locale,
+      body_length: @outgoing_message&.body&.length)
+
     begin
       mail_message = OutgoingMailer.initial_request(
         @outgoing_message.info_request,
@@ -625,6 +633,11 @@ class RequestController < ApplicationController
     end
 
     if @info_request.public_body.is_requestable?
+      track('request_started',
+        authority_id: @info_request.public_body_id,
+        authority_name: @info_request.public_body.name,
+        locale: AlaveteliLocalization.locale,
+        signed_in: current_user.present?)
       render action: 'new'
     elsif @info_request.public_body.not_requestable_reason == 'bad_contact'
       render action: 'new_bad_contact'

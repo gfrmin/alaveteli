@@ -182,6 +182,9 @@ class UserController < ApplicationController
         @user_signup.email_confirmed = false
         @user_signup.save!
         send_confirmation_mail @user_signup
+        track('user_registered',
+          user_id: @user_signup.id,
+          locale: AlaveteliLocalization.locale)
       end
       nil
     end
