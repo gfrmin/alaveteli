@@ -56,6 +56,10 @@ Rails.configuration.after_initialize do
     :pro_batch_category_add_all,
     label: 'Batch category "add all" button'
   )
+  AlaveteliFeatures.features.add(
+    :cache_stale_while_revalidate,
+    label: 'Append stale-while-revalidate to anonymous Cache-Control'
+  )
 
   next unless ActiveRecord::Base.connection.data_source_exists?(:roles)
 

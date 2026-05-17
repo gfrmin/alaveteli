@@ -57,7 +57,12 @@ class ApplicationController < ActionController::Base
   def anonymous_cache(time)
     return if authenticated?
 
-    headers['Cache-Control'] = "max-age=#{time}, public"
+    swr = if AlaveteliFeatures.backend.enabled?(:cache_stale_while_revalidate)
+            ", stale-while-revalidate=#{1.day.to_i}"
+          else
+            ""
+          end
+    headers['Cache-Control'] = "max-age=#{time}, public#{swr}"
   end
 
   def short_cache

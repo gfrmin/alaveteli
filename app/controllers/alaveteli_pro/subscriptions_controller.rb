@@ -36,6 +36,13 @@ class AlaveteliPro::SubscriptionsController < AlaveteliPro::BaseController
 
       @subscription = @pro_account.subscriptions.create(attributes)
 
+      track('pro_subscription_started',
+        subscription_id: @subscription&.id,
+        plan: @price.id,
+        amount_cents: @price.unit_amount,
+        currency: @price.currency,
+        coupon: @coupon&.id)
+
     rescue ProAccount::CardError,
            Stripe::CardError => e
       flash[:error] = e.message

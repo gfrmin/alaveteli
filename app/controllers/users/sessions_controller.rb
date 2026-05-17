@@ -44,6 +44,11 @@ class Users::SessionsController < UserController
 
       sign_in(@user_signin, remember_me: params[:remember_me].present?)
 
+      track('user_logged_in',
+        user_id: @user_signin.id,
+        remember_me: params[:remember_me].present?,
+        locale: AlaveteliLocalization.locale)
+
       if is_modal_dialog
         render template: 'users/sessions/show'
       else
@@ -59,6 +64,9 @@ class Users::SessionsController < UserController
   end
 
   def destroy
+    track('user_logged_out',
+      user_id: current_user&.id,
+      locale: AlaveteliLocalization.locale)
     clear_session_credentials
     redirect_path = params.fetch(:r) { frontpage_path }
     redirect_to SafeRedirect.new(redirect_path).path

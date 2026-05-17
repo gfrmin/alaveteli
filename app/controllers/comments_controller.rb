@@ -41,6 +41,10 @@ class CommentsController < ApplicationController
     # This automatically saves dependent objects in the same transaction
     @comment = @info_request.add_comment(@comment)
 
+    track('annotation_added',
+      request_id: @info_request.id,
+      body_length: @comment.body.to_s.length)
+
     # Also subscribe to track for this request, so they get updates
     # (do this first, so definitely don't send alert)
     flash[:notice] = _("Thank you for making an annotation!")

@@ -83,6 +83,13 @@ module Classifiable
     event = info_request.log_event('status_update', log_params)
     current_user.increment!(:status_update_count)
 
+    track('request_state_changed',
+      request_id: info_request.id,
+      from: log_params[:old_described_state],
+      to: described_state,
+      via: info_request.is_actual_owning_user?(current_user) ?
+        'requester' : 'other_user')
+
     # Make the state change
     info_request.set_described_state(described_state, current_user, message)
 

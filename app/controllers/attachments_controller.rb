@@ -19,9 +19,16 @@ class AttachmentsController < ApplicationController
   around_action :ensure_masked
 
   def show
-    if request.headers['Sec-Fetch-Dest'] == 'iframe' &&
-       request.headers['Sec-Fetch-Site'] == 'same-origin'
+    inline = request.headers['Sec-Fetch-Dest'] == 'iframe' &&
+             request.headers['Sec-Fetch-Site'] == 'same-origin'
 
+    track('attachment_downloaded',
+      request_id: @info_request.id,
+      content_type: content_type,
+      size_bucket: attachment_size_bucket,
+      display: inline ? 'inline' : 'download')
+
+    if inline
       render body: @attachment.body, content_type: content_type
     else
       send_data(
@@ -175,6 +182,18 @@ class AttachmentsController < ApplicationController
     # when cached in cache_attachments above
     AlaveteliFileTypes.filename_to_mimetype(params[:file_name]) ||
       'application/octet-stream'
+  end
+
+  def attachment_size_bucket
+    bytes = @attachment.body.bytesize
+    case bytes
+    when 0..10_000             then '<10k'
+    when 10_001..100_000       then '10-100k'
+    when 100_001..1_000_000    then '100k-1M'
+    else '>1M'
+    end
+  rescue StandardError
+    'unknown'
   end
 
   def attachment_is_public?

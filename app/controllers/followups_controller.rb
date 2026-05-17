@@ -28,6 +28,11 @@ class FollowupsController < ApplicationController
       flash[:error] = _('You previously submitted that exact follow up message for this request.')
     elsif @outgoing_message.valid?
       send_followup
+      track('followup_submitted',
+        request_id: @info_request.id,
+        attempt_n: @info_request.outgoing_messages.followup.count,
+        internal_review: @internal_review,
+        body_length: @outgoing_message.body.to_s.length)
       redirect_to request_url(@info_request) and return
     end
     render action: 'new'
