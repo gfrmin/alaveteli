@@ -4,6 +4,33 @@ module AnalyticsHelper
   # Event categories and actions should be drawn from the list in the
   # lib/analytics_events.rb file (add your own there when making new ones)
 
+  # Crawler / scripted-client User-Agent signature. Used to skip the PostHog
+  # snippet on the server so we don't ship analytics JS to traffic we don't
+  # want to count. Catches the obvious 95%; the remaining sophisticated
+  # headless browsers are filtered client-side via the humanity_check event.
+  BOT_UA_PATTERN = /
+    bot | crawl | spider | slurp | fetcher | wget | curl | httpx? |
+    monitor | pingdom | uptime | preview | prerender | lighthouse |
+    headless | phantomjs | selenium | puppeteer | playwright |
+    python-requests | python-urllib | go-http | java\/ |
+    facebookexternalhit | embedly | quora | outbrain | nuzzel |
+    discordbot | telegrambot | slackbot | whatsapp |
+    gptbot | anthropic-ai | claude-web | claudebot | ccbot |
+    perplexitybot | bingpreview | applebot
+  /xi.freeze
+
+  # Whether the current request should receive analytics JS. False for admin
+  # sessions, obvious bot User-Agents, and requests without a User-Agent
+  # header (raw HTTP clients, malicious scripts). Wraps the PostHog block in
+  # `_before_head_end.html.erb`.
+  def analytics_eligible?
+    return false if @user&.is_admin?
+    ua = request.user_agent.to_s
+    return false if ua.blank?
+    return false if ua.match?(BOT_UA_PATTERN)
+    true
+  end
+
   # Public: Constructs a String consisting of a Google Analytics (GA) tracking
   # event function call with the (mandatory) event category and action params
   # and optional label and value params.
