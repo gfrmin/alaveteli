@@ -231,6 +231,21 @@ class ApplicationController < ActionController::Base
       end
       @status = 500
     end
+
+    # An exception raised after the response was rendered - in a template, or
+    # in code that runs once an action has already rendered - cannot be
+    # rendered over. Calling render here raises
+    # AbstractController::DoubleRenderError, which then masks the real
+    # exception in both the log and the notification email. The failure has
+    # already been logged and notified above, so warn and let the rendered
+    # response stand.
+    if performed?
+      Rails.logger.warn("Response already rendered; not rendering " \
+                        "exception page for #{@exception_class} " \
+                        "(#{@exception_message})")
+      return
+    end
+
     respond_to do |format|
       format.html { render template: "general/exception_caught", status: @status }
       format.any { head @status }
