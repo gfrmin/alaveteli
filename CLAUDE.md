@@ -25,11 +25,61 @@ bin/rails server               # Puma on port 3000
 bin/rails console
 ```
 
-### Docker
+### Docker / local development
+
+This is the supported way to develop and test locally, and it works with
+podman (`docker` and `docker compose` are podman shims on this machine).
+
+One-time setup:
 ```bash
-docker-compose up              # app (3000), sidekiq, PostgreSQL (6432), redis, MailHog (1080)
+mkdir -p ../alaveteli-themes                    # sibling dir, mounted at /alaveteli-themes
+git -C ../alaveteli-themes clone git@github.com:gfrmin/accessinfohktheme.git
+./docker/bootstrap                              # config files, submodules, stock theme
+cp config/general.yml-example config/general-accessinfohktheme.yml
+ln -sfn general-accessinfohktheme.yml config/general.yml
+ln -sfn ../../../alaveteli-themes/alavetelitheme lib/themes/alavetelitheme
+./docker/setup                                  # build, bundle, migrate, seed, index
 ```
-Services: `app`, `sidekiq`, `db` (PostgreSQL 13.5), `redis`, `smtp` (MailHog). Themes mount from `../alaveteli-themes`.
+
+Day to day:
+```bash
+docker compose up                                        # http://localhost:3000
+docker compose run --rm app bundle exec rspec <path>      # specs
+docker compose run --rm app bundle exec rubocop           # lint
+docker compose run --rm app bin/rails console
+```
+Services: `app`, `sidekiq`, `db` (PostgreSQL 13.5), `redis`, `smtp` (MailHog at 1080).
+
+**The theme is a symlink, not a copy.** `script/switch-theme.rb` (run by
+`docker/setup`) links `lib/themes/accessinfohktheme` to
+`../alaveteli-themes/accessinfohktheme`, so edits in the theme repo are live
+in the running app with no reinstall.
+
+The `lib/themes/alavetelitheme` symlink is only there to satisfy core specs
+that hardcode the stock theme's path (e.g. the `theme_asset_exists?` examples
+in `spec/helpers/application_helper_spec.rb`). It is never loaded - in the
+test environment `config/initializers/theme_loader.rb` loads only the theme
+named by `ALAVETELI_TEST_THEME`.
+
+### Theme specs
+
+Theme specs live in the theme repo and run from the Alaveteli root:
+```bash
+docker compose run --rm app bundle exec rspec lib/themes/accessinfohktheme/spec
+```
+
+Three things a theme spec file must do, none of which fail loudly if omitted:
+
+- **Set `ALAVETELI_TEST_THEME = 'accessinfohktheme'` before requiring
+  `spec_helper`.** Without it the theme is not loaded and the specs silently
+  run against an unthemed app. `require_theme` returns quietly when the named
+  directory does not exist, so a wrong name looks identical to a right one.
+- **Declare `type: :controller`** on controller specs. RSpec infers the type
+  from the file path (`spec/controllers/`), which theme specs are not in, so
+  `render_views`, `get` and `controller do` are otherwise undefined.
+- **Stub message bodies after the last save.** Saving an `InfoRequest`
+  reloads its `incoming_messages`, discarding stubs set on a detached
+  message object; stub the instances the association yields.
 
 ### Testing
 ```bash
