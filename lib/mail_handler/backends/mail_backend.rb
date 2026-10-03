@@ -487,7 +487,9 @@ module MailHandler
         return Mail::Address.new(email.dup).to_s if name.nil?
 
         address = Mail::Address.new
-        address.display_name = name.dup
+        # Line breaks in a display name make the header unparseable, leaving
+        # no recipient address (e.g. zh_HK body names containing "\n").
+        address.display_name = name.squish
         address.address = email.dup
         address.to_s
       end

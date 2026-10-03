@@ -246,6 +246,14 @@ RSpec.describe 'when deriving a name, email and formatted address from a message
                                 'foiperson@localhost',
                                 '"FOI \" Person" <foiperson@localhost>'])
   end
+
+  it 'collapses line breaks in the name so the address stays parseable' do
+    address = MailHandler.address_from_name_and_email(
+      "香港警務處\n行動部", 'foiperson@localhost'
+    )
+    expect(address).not_to match(/[\r\n]/)
+    expect(Mail.new(to: address).to_addrs).to eq(['foiperson@localhost'])
+  end
 end
 
 RSpec.describe 'when getting the content type of a mail part' do
