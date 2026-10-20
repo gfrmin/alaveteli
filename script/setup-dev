@@ -1,0 +1,112 @@
+#!/bin/sh
+
+# Set up an accessinfo.hk development environment from a fresh clone of
+# gfrmin/alaveteli. Safe to rerun: existing files, clones and databases are
+# left alone.
+#
+#   script/setup-dev            # Docker or podman (recommended)
+#   script/setup-dev --native   # host Ruby and PostgreSQL
+#
+# See doc/DEVELOPMENT-ACCESSINFOHK.md.
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+error_msg() { printf "\033[31m%s\033[0m\n" "$*"; }
+notice_msg() { printf "\033[33m%s\033[0m " "$*"; }
+success_msg() { printf "\033[32m%s\033[0m\n" "$*"; }
+
+native=false
+for arg in "$@"; do
+  case $arg in
+    --native) native=true ;;
+    *) error_msg "Unknown argument: $arg"; exit 1 ;;
+  esac
+done
+
+themes_dir="$(dirname "$(pwd)")/alaveteli-themes"
+theme_repo=https://github.com/gfrmin/accessinfohktheme.git
+
+notice_msg "Cloning accessinfohktheme..."
+mkdir -p "$themes_dir"
+if [ ! -d "$themes_dir/accessinfohktheme" ]; then
+  git clone --quiet "$theme_repo" "$themes_dir/accessinfohktheme"
+fi
+success_msg 'done'
+
+notice_msg "Writing accessinfohktheme config..."
+# config/general.yml-example already carries the accessinfo.hk settings
+[ ! -f config/general-accessinfohktheme.yml ] &&
+  cp config/general.yml-example config/general-accessinfohktheme.yml
+ln -sfn general-accessinfohktheme.yml config/general.yml
+success_msg 'done'
+
+if [ "$native" = false ]; then
+  # Core specs hardcode the stock theme's path; docker/bootstrap clones it
+  ln -sfn ../../../alaveteli-themes/alavetelitheme lib/themes/alavetelitheme
+  exec ./docker/setup
+fi
+
+notice_msg "Checking native dependencies..."
+missing=''
+for program in ruby bundle psql createdb unrtf tnef pdftotext; do
+  command -v $program >/dev/null 2>&1 || missing="$missing $program"
+done
+if [ -n "$missing" ]; then
+  error_msg "missing:$missing"
+  error_msg "See 'Native setup' in doc/DEVELOPMENT-ACCESSINFOHK.md."
+  exit 1
+fi
+case "$(ruby -e 'print RUBY_VERSION')" in
+  3.2.*) ;;
+  *) error_msg "Ruby 3.2 is required (production runs 3.2.2)"; exit 1 ;;
+esac
+success_msg 'done'
+
+notice_msg "Copying example files..."
+[ ! -f config/database.yml ] &&
+  sed -e "s/<username>/$(id -un)/" -e '/password: <password>/d' \
+    config/database.yml-example > config/database.yml
+[ ! -f config/sidekiq.yml ] && cp config/sidekiq.yml-example config/sidekiq.yml
+[ ! -f config/storage.yml ] && cp config/storage.yml-example config/storage.yml
+success_msg 'done'
+
+notice_msg "Syncing git submodules..."
+git submodule update --init --quiet
+success_msg 'done'
+
+notice_msg "Cloning alavetelitheme..."
+[ ! -d "$themes_dir/alavetelitheme" ] &&
+  git clone --quiet https://github.com/mysociety/alavetelitheme.git \
+    "$themes_dir/alavetelitheme"
+ln -sfn ../../../alaveteli-themes/alavetelitheme lib/themes/alavetelitheme
+success_msg 'done'
+
+notice_msg "Configuring bundler..."
+# These old C extensions don't compile under GCC 14+ without -fpermissive
+bundle config set --local build.syck --with-cflags=-fpermissive
+bundle config set --local build.statistics2 --with-cflags=-fpermissive
+success_msg 'done'
+
+notice_msg "Creating databases..."
+database_exists() {
+  psql -d postgres -Atc "SELECT 1 FROM pg_database WHERE datname='$1'" | grep -q 1
+}
+if ! database_exists template_utf8; then
+  createdb -T template0 -E UTF-8 template_utf8
+  psql -d postgres -qc "UPDATE pg_database SET datistemplate=true,
+    datallowconn=false WHERE datname='template_utf8'"
+fi
+databases=$(ruby -ryaml -rerb -e '
+  config = YAML.load(ERB.new(File.read("config/database.yml")).result,
+                     aliases: true)
+  puts config.values_at("development", "test").map { |c| c["database"] }')
+for database in $databases; do
+  database_exists $database || createdb -T template_utf8 $database
+done
+success_msg 'done'
+
+# docker/setup's in-container steps (bundle, theme, migrate, seed, sample
+# data, Xapian index) run unchanged on the host
+DOCKER=1 exec ./docker/setup

@@ -1,3 +1,7 @@
+> **This is the fork that runs [accessinfo.hk](https://accessinfo.hk).** To
+> set up a development environment, run `script/setup-dev` and see
+> [doc/DEVELOPMENT-ACCESSINFOHK.md](doc/DEVELOPMENT-ACCESSINFOHK.md).
+
 # Welcome to Alaveteli!
 
 [![CI](https://img.shields.io/github/actions/workflow/status/mysociety/alaveteli/ci.yml?label=CI)](http://github.com/mysociety/alaveteli/actions?query=workflow%3ACI)

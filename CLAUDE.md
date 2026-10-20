@@ -6,18 +6,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Alaveteli is an open-source platform for making Freedom of Information (FOI) requests. This is a fork (`gfrmin/alaveteli`) of `mysociety/alaveteli` (upstream remote configured). It powers accessinfo.hk (Hong Kong FOI platform). Rails 8.0 application, Ruby 3.2 (also tested on 3.3, 3.4).
 
-**The main development branch is `rails-3-develop`, not `master` or `develop`.** Pull requests should target `rails-3-develop`.
+**Production runs `production-0.46.7.0-patched`** (upstream 0.46.8.0 plus our
+patches); work and deploy from it. The fork's GitHub default branch,
+`rails-3-develop`, is a stale copy of upstream `develop` without our patches.
+Upstream PRs go to `mysociety/alaveteli` `develop`.
+
+Human-facing setup docs: `doc/DEVELOPMENT-ACCESSINFOHK.md`.
 
 ## Development Commands
 
 ### Setup
 ```bash
-git submodule update --init    # commonlib/ is a mySociety git submodule
-bundle install
-cp config/general.yml-example config/general.yml  # then edit settings
-bin/rails db:migrate
-bin/rails db:seed
+script/setup-dev            # Docker/podman: theme clone, config, build, seed
+script/setup-dev --native   # host Ruby 3.2 + PostgreSQL instead
 ```
+Both routes pass the full core and theme suites from a fresh clone.
 
 ### Running
 ```bash
@@ -30,22 +33,17 @@ bin/rails console
 This is the supported way to develop and test locally, and it works with
 podman (`docker` and `docker compose` are podman shims on this machine).
 
-One-time setup:
-```bash
-mkdir -p ../alaveteli-themes                    # sibling dir, mounted at /alaveteli-themes
-git -C ../alaveteli-themes clone git@github.com:gfrmin/accessinfohktheme.git
-./docker/bootstrap                              # config files, submodules, stock theme
-cp config/general.yml-example config/general-accessinfohktheme.yml
-ln -sfn general-accessinfohktheme.yml config/general.yml
-ln -sfn ../../../alaveteli-themes/alavetelitheme lib/themes/alavetelitheme
-./docker/setup                                  # build, bundle, migrate, seed, index
-```
+One-time setup is `script/setup-dev`. It clones the theme into the sibling
+`../alaveteli-themes` (mounted at `/alaveteli-themes`), copies
+`config/general.yml-example` (which already holds the HK settings) to
+`config/general-accessinfohktheme.yml`, links the stock theme, and runs
+`docker/setup` (build, bundle, migrate, seed, index).
 
 Day to day:
 ```bash
 docker compose up                                        # http://localhost:3000
 docker compose run --rm app bundle exec rspec <path>      # specs
-docker compose run --rm app bundle exec rubocop           # lint
+docker compose run --rm app bundle exec rubocop <files>   # lint changed files
 docker compose run --rm app bin/rails console
 ```
 Services: `app`, `sidekiq`, `db` (PostgreSQL 13.5), `redis`, `smtp` (MailHog at 1080).
@@ -91,9 +89,11 @@ COVERAGE=local bundle exec rspec               # With SimpleCov report
 
 ### Linting
 ```bash
-bundle exec rubocop            # Run RuboCop
-bundle exec rubocop -a         # Auto-fix
+bundle exec rubocop <files>    # Run RuboCop on the files you changed
+bundle exec rubocop -a <files> # Auto-fix
 ```
+The repo isn't RuboCop-clean (thousands of pre-existing offences, upstream
+too); CI uses reviewdog and only flags offences on changed lines.
 
 ### Xapian Search Index
 ```bash
