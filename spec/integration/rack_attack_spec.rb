@@ -1,13 +1,22 @@
 require 'spec_helper'
 
 RSpec.describe 'Rack::Attack', type: :request do
+  # Throttles count per fixed period; freeze time so the requests in an
+  # example can't straddle a period boundary and split the count.
+  around { |example| freeze_time { example.run } }
+
   before do
     Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
     Rack::Attack.reset!
   end
 
   let(:client_ip) { '203.0.113.42' }
-  let(:headers) { { 'HTTP_CF_CONNECTING_IP' => client_ip } }
+  # As proxied in production: Cloudflare edge -> nginx on loopback -> puma
+  let(:cloudflare_ip) { '104.23.190.145' }
+  let(:headers) do
+    { 'HTTP_CF_CONNECTING_IP' => client_ip,
+      'HTTP_X_FORWARDED_FOR' => "#{client_ip}, #{cloudflare_ip}" }
+  end
 
   it 'allows requests under the /similar throttle' do
     30.times do

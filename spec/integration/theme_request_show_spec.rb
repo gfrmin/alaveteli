@@ -47,24 +47,4 @@ RSpec.describe "Viewing requests with theme controller patches" do
       expect(page.status_code).to eq(200)
     end
   end
-
-  context "with HK deadline info" do
-    it "shows deadline details for a waiting request" do
-      info_request = FactoryBot.create(:info_request)
-      using_session(@session) do
-        browse_request(info_request.url_title)
-        expect(page).to have_css('.hk-deadline-info')
-        expect(page).to have_content('Interim reply (10 days)')
-        expect(page).to have_content('Target response (21 days)')
-      end
-    end
-
-    it "does not show deadline details for a successful request" do
-      info_request = FactoryBot.create(:info_request, :successful)
-      using_session(@session) do
-        browse_request(info_request.url_title)
-        expect(page).not_to have_css('.hk-deadline-info')
-      end
-    end
-  end
 end

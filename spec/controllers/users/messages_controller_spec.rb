@@ -225,7 +225,9 @@ RSpec.describe Users::MessagesController do
         sign_in(sender)
       end
 
-      it 'sends an exception notification' do
+      it 'logs the spam detection' do
+        expect(Rails.logger).to receive(:info).
+          with(/spam user message from user #{ sender.id }/)
         post :contact, params: {
           url_name: recipient.url_name,
           contact: {
@@ -234,9 +236,6 @@ RSpec.describe Users::MessagesController do
           },
           submitted_contact_form: 1
         }
-
-        expect(ActionMailer::Base.deliveries.first.subject).
-          to match(/spam user message from user #{ sender.id }/)
       end
 
       it 'shows an error message' do
@@ -292,7 +291,9 @@ RSpec.describe Users::MessagesController do
         sign_in(sender)
       end
 
-      it 'sends an exception notification' do
+      it 'logs the spam detection' do
+        expect(Rails.logger).to receive(:info).
+          with(/spam user message from user #{ sender.id }/)
         post :contact, params: {
           url_name: recipient.url_name,
           contact: {
@@ -301,9 +302,6 @@ RSpec.describe Users::MessagesController do
           },
           submitted_contact_form: 1
         }
-
-        expect(ActionMailer::Base.deliveries.first.subject).
-          to match(/spam user message from user #{ sender.id }/)
       end
 
       it 'sends the message' do

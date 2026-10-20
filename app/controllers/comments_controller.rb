@@ -167,6 +167,7 @@ class CommentsController < ApplicationController
   def validate_comment
     return if params[:comment] && @comment.valid?
 
+    @comment ||= @info_request.comments.build
     flash.now[:error] = _("Please correct the errors below")
     render action: 'new'
   end

@@ -81,18 +81,18 @@ RSpec.describe CommentsController, "when commenting on a request" do
       }.not_to raise_error
     end
 
-    it 'redirects to request page when comment parameter is empty hash' do
+    it 'redirects to request page when comment parameter is blank' do
       get :new, params: {
         url_title: info_requests(:naughty_chicken_request).url_title,
         type: 'request',
-        comment: {}
+        comment: ''
       }
       expect(response).to redirect_to(
         request_url(info_requests(:naughty_chicken_request))
       )
     end
 
-    it 'does not raise exception on preview with empty comment hash' do
+    it 'does not raise exception on preview without a comment' do
       expect {
         post :preview, params: {
           url_title: info_requests(:naughty_chicken_request).url_title,
@@ -274,8 +274,10 @@ RSpec.describe CommentsController, "when commenting on a request" do
         allow(@controller).to receive(:block_spam_comments?).and_return(true)
       end
 
-      it 'sends an exception notification' do
+      it 'logs the spam detection' do
         sign_in user
+        expect(Rails.logger).to receive(:info).
+          with(/spam annotation from user #{ user.id }/)
         post :create, params: {
           url_title: request.url_title,
           comment: {
@@ -285,8 +287,6 @@ RSpec.describe CommentsController, "when commenting on a request" do
           submitted_comment: 1,
           preview: 0
         }
-        mail = ActionMailer::Base.deliveries.first
-        expect(mail.subject).to match(/spam annotation from user #{ user.id }/)
       end
 
       it 'shows an error message' do
@@ -342,8 +342,10 @@ RSpec.describe CommentsController, "when commenting on a request" do
         allow(@controller).to receive(:block_spam_comments?).and_return(false)
       end
 
-      it 'sends an exception notification' do
+      it 'logs the spam detection' do
         sign_in user
+        expect(Rails.logger).to receive(:info).
+          with(/spam annotation from user #{ user.id }/)
         post :create, params: {
           url_title: request.url_title,
           comment: {
@@ -353,8 +355,6 @@ RSpec.describe CommentsController, "when commenting on a request" do
           submitted_comment: 1,
           preview: 0
         }
-        mail = ActionMailer::Base.deliveries.first
-        expect(mail.subject).to match(/spam annotation from user #{ user.id }/)
       end
 
       it 'allows the comment' do

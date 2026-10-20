@@ -272,16 +272,15 @@ RSpec.describe UserProfile::AboutMeController do
 
       after(:each) { UserSpamScorer.reset }
 
-      it 'sends an exception notification' do
+      it 'logs the spam detection' do
+        expect(Rails.logger).to receive(:info).
+          with(/Spam about me text from user #{ user.id }/)
         put :update,
             params: {
               user: {
                 about_me: '[HD] Watch Jason Bourne Online free MOVIE Full-HD'
               }
             }
-        mail = ActionMailer::Base.deliveries.first
-        expect(mail.subject).
-          to match(/Spam about me text from user #{ user.id }/)
       end
 
       it 'sets an error message' do

@@ -286,10 +286,10 @@ RSpec.describe Users::SessionsController do
             to receive(:spam_should_be_blocked?).and_return(false)
         end
 
-        it 'sends an exception notification' do
+        it 'logs the spam detection' do
+          expect(Rails.logger).to receive(:info).
+            with(/signin from suspected spammer/)
           do_signin(user.email, 'password1234')
-          mail = ActionMailer::Base.deliveries.first
-          expect(mail.subject).to match(/signin from suspected spammer/)
         end
 
         it 'allows the signin' do
