@@ -6,13 +6,41 @@ theme.
 
 ## Repositories and branches
 
-| Repository | Branch | Notes |
-| --- | --- | --- |
-| `gfrmin/alaveteli` | `production-0.46.7.0-patched` | What runs in production: an upstream release plus our patches. Despite the name it now includes 0.46.8.0. |
-| `gfrmin/accessinfohktheme` | `master` | Deployed at its latest commit. |
+| Repository | Production branch |
+| --- | --- |
+| `gfrmin/alaveteli` | `master`: the latest upstream release plus our patches |
+| `gfrmin/accessinfohktheme` | `master` |
 
-The fork's GitHub default branch, `rails-3-develop`, is an old copy of
-upstream `develop` without our patches, so name the branch when cloning.
+This follows upstream's git-flow convention, where `master` is what's
+released and `develop` is upstream's integration branch. Both `master`
+branches are the repository defaults and are protected: nobody can push to
+them directly, including admins, so every change arrives through a pull
+request.
+
+The fork's other old branches (`develop`, `rails-3-develop`,
+`production-*-patched`) are historical. Upstream retired `rails-3-develop`
+long ago (see `doc/CHANGES.md`).
+
+### Making a change
+
+```bash
+git switch -c hotfix/short-description master   # or feature/…
+# commit, run the specs
+git push -u origin HEAD
+gh pr create --base master
+gh pr merge --merge                              # once CI passes
+./deploy.sh
+```
+
+### Taking an upstream release
+
+Merge the release tag into a branch named after it, then open a PR:
+
+```bash
+git fetch upstream --tags
+git switch -c release/0.46.9.0 master
+git merge 0.46.9.0
+```
 
 ## Setup
 
@@ -21,7 +49,7 @@ Clone the code into a directory of its own. The theme goes in a sibling
 
 ```bash
 mkdir accessinfohk && cd accessinfohk
-git clone -b production-0.46.7.0-patched https://github.com/gfrmin/alaveteli.git
+git clone https://github.com/gfrmin/alaveteli.git
 cd alaveteli
 script/setup-dev            # Docker or podman
 script/setup-dev --native   # or: host Ruby and PostgreSQL
@@ -76,11 +104,12 @@ bundle exec rubocop path/to/changed_file.rb
 
 ## Deploying
 
-`./deploy.sh` pushes both repositories, then pulls, bundles, precompiles
-and restarts on the server. It needs SSH access to `alaveteli@accessinfohk`.
-The server pulls its own checked-out branch, so deploy from
-`production-0.46.7.0-patched`. `--theme-only` deploys only theme changes,
-and `--migrate` also runs migrations.
+`./deploy.sh` deploys `origin/master` of both repositories: it pulls,
+bundles, precompiles and restarts on the server. It never pushes, so merge
+your pull request first; it warns about local commits that aren't on
+`origin/master`. It needs SSH access to `alaveteli@accessinfohk`.
+`--theme-only` deploys only theme changes, and `--migrate` also runs
+migrations.
 
 ## Troubleshooting
 

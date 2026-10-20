@@ -6,10 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Alaveteli is an open-source platform for making Freedom of Information (FOI) requests. This is a fork (`gfrmin/alaveteli`) of `mysociety/alaveteli` (upstream remote configured). It powers accessinfo.hk (Hong Kong FOI platform). Rails 8.0 application, Ruby 3.2 (also tested on 3.3, 3.4).
 
-**Production runs `production-0.46.7.0-patched`** (upstream 0.46.8.0 plus our
-patches); work and deploy from it. The fork's GitHub default branch,
-`rails-3-develop`, is a stale copy of upstream `develop` without our patches.
-Upstream PRs go to `mysociety/alaveteli` `develop`.
+**Production is `master`** (upstream 0.46.8.0 plus our patches), following
+upstream's git-flow convention. `master` is the default branch and is
+protected in both repos (no direct pushes, admins included): branch as
+`hotfix/…`, `feature/…` or `release/<version>`, open a PR against `master`,
+merge, then `./deploy.sh`, which deploys `origin/master` and never pushes.
+The fork's `develop`, `rails-3-develop` and `production-*-patched` branches
+are historical. Upstream PRs go to `mysociety/alaveteli` `develop`.
 
 Human-facing setup docs: `doc/DEVELOPMENT-ACCESSINFOHK.md`.
 
