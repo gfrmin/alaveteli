@@ -415,7 +415,7 @@ class ApplicationController < ActionController::Base
   end
 
   def get_search_page_from_params
-    page = (params[:page] || "1").to_i
+    page = params[:page].to_s.to_i
     page = 1 if page < 1
     page
   end

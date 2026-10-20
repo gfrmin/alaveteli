@@ -5,7 +5,7 @@ module RobotsHeaders
   extend ActiveSupport::Concern
 
   included do
-    before_action :set_no_crawl_headers, if: -> { params[:page].to_i > 1 }
+    before_action :set_no_crawl_headers, if: -> { params[:page].to_s.to_i > 1 }
   end
 
   private
