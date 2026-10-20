@@ -1,0 +1,3 @@
+#!/bin/sh
+# Stands in for sendmail in tests: accept and discard the message.
+cat > /dev/null

@@ -79,6 +79,9 @@ ADMIN_PASSWORD: 'qwe'
 CONTACT_EMAIL: 'postmaster@localhost'
 CONTACT_NAME: 'Alaveteli Webmaster'
 
+# Swallow mail forwarded by script/handle-mail-replies
+SENDMAIL_PATH: 'spec/support/bin/sendmail'
+
 # Where the raw incoming email data gets stored; make sure you back
 # this up!
 RAW_EMAILS_LOCATION: 'files/raw_emails'

@@ -111,6 +111,7 @@ module AlaveteliConfiguration
       RESTRICTED_COUNTRIES: '',
       RESTRICT_NEW_RESPONSES_ON_OLD_REQUESTS_AFTER_MONTHS: 6,
       SECRET_KEY_BASE: 'this default is insecure as code is open source, please override for live sites in config/general; this will do for local development',
+      SENDMAIL_PATH: '/usr/sbin/sendmail',
       SITE_NAME: 'Alaveteli',
       SKIP_ADMIN_AUTH: false,
       SMTP_MAILER_ADDRESS: 'localhost',

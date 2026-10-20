@@ -606,6 +606,18 @@ FORWARD_NONBOUNCE_RESPONSES_TO: user-support@localhost
 # ---
 FORWARD_PRO_NONBOUNCE_RESPONSES_TO: pro-user-support@localhost
 
+# The sendmail binary used by script/handle-mail-replies to forward
+# non-bounce responses. A relative path is resolved from the Alaveteli root.
+#
+# SENDMAIL_PATH - String (default: /usr/sbin/sendmail)
+#
+# Examples:
+#
+#   SENDMAIL_PATH: /usr/lib/sendmail
+#
+# ---
+SENDMAIL_PATH: /usr/sbin/sendmail
+
 # Email address used for sending exception notifications.
 #
 # EXCEPTION_NOTIFICATIONS_FROM - String (default: nil)

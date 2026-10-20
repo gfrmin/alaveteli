@@ -83,7 +83,9 @@ module MailHandler
 
     def self.forward_on(raw_message, message = nil)
       forward_to = get_forward_to_address(message)
-      IO.popen(%Q(/usr/sbin/sendmail -i "#{forward_to}"), 'wb') do |f|
+      sendmail = File.expand_path(AlaveteliConfiguration.sendmail_path,
+                                  File.join(__dir__, '..', '..'))
+      IO.popen(%Q(#{sendmail} -i "#{forward_to}"), 'wb') do |f|
         f.write(raw_message)
         f.close
       end

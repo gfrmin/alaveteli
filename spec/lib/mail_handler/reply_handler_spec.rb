@@ -8,9 +8,21 @@ RSpec.describe MailHandler::ReplyHandler do
       let(:message) { MailHandler.mail_from_raw_email(raw_email) }
 
       it 'forwards the message to sendmail' do
+        allow(AlaveteliConfiguration).
+          to receive(:sendmail_path).and_return('/usr/sbin/sendmail')
         expect(IO).
           to receive(:popen).
           with('/usr/sbin/sendmail -i "user-support@localhost"', 'wb')
+        MailHandler::ReplyHandler.forward_on(raw_email, message)
+      end
+
+      it 'resolves a relative sendmail path from the Alaveteli root' do
+        allow(AlaveteliConfiguration).
+          to receive(:sendmail_path).and_return('bin/sendmail')
+        expect(IO).
+          to receive(:popen).
+          with(%Q(#{ Rails.root.join('bin/sendmail') } -i ) +
+               '"user-support@localhost"', 'wb')
         MailHandler::ReplyHandler.forward_on(raw_email, message)
       end
     end
