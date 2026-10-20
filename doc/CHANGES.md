@@ -54,6 +54,20 @@
 * Drop support for Ruby 3.2 (Graeme Porteous)
 * Block various action links via robots.txt (Laurent Savaete)
 
+# 0.46.8.0
+
+## Highlighted Features
+
+* Fix command injection in the admin holiday feed import, and only fetch
+  remote HTTP and HTTPS URLs (Arnaud Jost, Gareth Rees, Graeme Porteous, Helen
+  Cross)
+
+# 0.46.7.0
+
+## Highlighted Features
+
+* Prevent token rebinding when it already has a user (Gareth Rees)
+
 ## Upgrade Notes
 
 * _Note:_ This release now allows responses to be received from any source,
