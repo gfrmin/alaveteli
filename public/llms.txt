@@ -1,0 +1,28 @@
+# Access Info Hong Kong
+
+> Access Info Hong Kong (accessinfo.hk) lets anyone ask Hong Kong government bureaux, departments and certain public bodies for information under the Code on Access to Information, and publishes every request and response so others can read them.
+
+Requests are written on the site, sent to the public body, and the replies are published alongside them. The Code is an administrative code, not legislation: departments are expected to comply, and a dissatisfied requester can ask for an internal review or complain to The Ombudsman. The site runs on Alaveteli, the open-source freedom-of-information platform, and is available in English and Traditional Chinese.
+
+## Requests
+
+- [Browse all requests](https://accessinfo.hk/list): every request made through the site, with its status and correspondence
+- [Successful requests](https://accessinfo.hk/list/successful): requests where the body released the information
+- [Search](https://accessinfo.hk/search): search requests, responses and public bodies
+
+## Public bodies
+
+- [All public bodies](https://accessinfo.hk/body/list/all): the bureaux, departments and public bodies requests can be sent to, each with its own page of requests
+
+## Help
+
+- [About](https://accessinfo.hk/help/about): what the site does and how the Code on Access to Information works
+- [Making requests](https://accessinfo.hk/help/requesting): how to write a request and what happens next
+- [For public officials](https://accessinfo.hk/help/officers): guidance for the bodies that receive requests
+- [Privacy](https://accessinfo.hk/help/privacy): what the site publishes and keeps
+- [API](https://accessinfo.hk/help/api): machine-readable access to requests and bodies
+- [Contact](https://accessinfo.hk/help/contact): how to reach the site's operators
+
+## Optional
+
+- [Credits](https://accessinfo.hk/help/credits): the software and people behind the site
