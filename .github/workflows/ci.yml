@@ -82,12 +82,16 @@ jobs:
         fetch-depth: 0
 
     - name: Install packages
+      # Normally ~45 s. On 2026-10-23 it hung for 20-43 min in three of six jobs
+      # (runner/apt, not code: master's re-run the same day was fine), and with no
+      # timeout a hang holds the job to GitHub's 6 h default. Fail fast and re-run.
+      timeout-minutes: 10
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
-        sudo apt-get -y update
-        sudo apt-get -y install exim4-daemon-light
-        sudo apt-get -y install `cut -d " " -f 1 config/packages | egrep -v "(^#|wkhtml|bundler|^ruby|^rake)"`
+        sudo apt-get -y -o Acquire::Retries=3 update
+        sudo apt-get -y -o Acquire::Retries=3 install exim4-daemon-light
+        sudo apt-get -y -o Acquire::Retries=3 install `cut -d " " -f 1 config/packages | egrep -v "(^#|wkhtml|bundler|^ruby|^rake)"`
 
     - name: Install Ruby ${{ matrix.ruby }}
       uses: ruby/setup-ruby@v1
