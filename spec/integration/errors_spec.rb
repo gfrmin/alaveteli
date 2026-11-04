@@ -47,6 +47,46 @@ RSpec.describe "When errors occur" do
       expect(response.body).to match("Sorry, we couldn't find that page")
     end
 
+    context 'when the request body cannot be parsed' do
+      let(:malformed_json) { '{"code":"x" ((X=~/.configrc6/a/xmrig.pid;' }
+
+      def post_malformed_json(path)
+        post path,
+             params: malformed_json,
+             headers: { 'CONTENT_TYPE' => 'application/json' }
+      end
+
+      before do
+        allow_any_instance_of(ApplicationController).
+          to receive(:send_exception_notifications?).and_return(true)
+      end
+
+      it 'responds with an empty 400 on an unrouteable URL' do
+        post_malformed_json '/api/v1/code/blocks/exec/code'
+        expect(response.code).to eq('400')
+        expect(response.body).to be_empty
+      end
+
+      it 'responds with an empty 400 on a routeable URL' do
+        post_malformed_json '/profile/sign_in'
+        expect(response.code).to eq('400')
+        expect(response.body).to be_empty
+      end
+
+      it 'does not send an exception notification' do
+        expect(ExceptionNotifier).not_to receive(:notify_exception)
+        post_malformed_json '/api/v1/code/blocks/exec/code'
+      end
+    end
+
+    it 'still renders a 404 for a well-formed POST to an unrouteable URL' do
+      post '/api/v1/code/blocks/exec/code',
+           params: '{"code":"x"}',
+           headers: { 'CONTENT_TYPE' => 'application/json' }
+      expect(response).to render_template('general/exception_caught')
+      expect(response.code).to eq('404')
+    end
+
     it "should render a 500 for general errors using the general/exception_caught template" do
       allow(InfoRequest).to receive(:find_by_url_title!).and_raise("An example error")
       get "/request/example"

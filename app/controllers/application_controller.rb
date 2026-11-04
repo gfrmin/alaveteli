@@ -27,6 +27,14 @@ class ApplicationController < ActionController::Base
   # assign our own handler method for non-local exceptions
   rescue_from Exception, with: :render_exception
 
+  # A body that cannot be parsed is the client's error. It needs its own
+  # handler, registered after the one above so that it takes precedence, as
+  # render_exception would treat it as a 500 and notify, then fail again
+  # because rendering the exception page reads params, which reparses the body.
+  rescue_from ActionDispatch::Http::Parameters::ParseError do
+    head :bad_request
+  end
+
   # Standard headers, footers and navigation for whole site
   layout "default"
 
