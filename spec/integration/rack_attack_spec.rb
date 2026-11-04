@@ -31,6 +31,14 @@ RSpec.describe 'Rack::Attack', type: :request do
     expect(response.headers['Retry-After']).to be_present
   end
 
+  it 'cannot be evaded by varying the CF-Connecting-IP header' do
+    31.times do |i|
+      get '/request/anything/similar',
+          headers: headers.merge('HTTP_CF_CONNECTING_IP' => "198.51.100.#{i}")
+    end
+    expect(response.status).to eq(429)
+  end
+
   describe 'sign in URLs that return to an authentication page' do
     [
       '/profile/sign_in?r=/profile/sign_in?r=/list',
