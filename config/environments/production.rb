@@ -120,6 +120,7 @@ Rails.application.configure do
     ignored_exceptions = %w(
       ActionController::BadRequest
       ActionController::InvalidAuthenticityToken
+      ActionDispatch::Http::Parameters::ParseError
       ActionDispatch::Http::MimeNegotiation::InvalidType
       URI::InvalidURIError
     ) + ExceptionNotifier.ignored_exceptions
