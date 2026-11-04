@@ -39,6 +39,32 @@ RSpec.describe 'Rack::Attack', type: :request do
     expect(response.status).to eq(429)
   end
 
+  describe 'sign in URLs that return to an authentication page' do
+    [
+      '/profile/sign_in?r=/profile/sign_in?r=/list',
+      '/profile/sign_in?r=%2Fprofile%2Fsign_in%3Ftoken%3Dabc',
+      '/profile/sign_in?r=%2Fprofile%2Fchange_password%2Fnew%3Fpretoken%3Dabc',
+      '/profile/sign_in?locale=zh_HK&r=%2Fprofile%2Fsign_in%3Ftoken%3Dabc'
+    ].each do |url|
+      it "blocks #{url}" do
+        get url, headers: headers
+        expect(response.status).to eq(403)
+      end
+    end
+
+    [
+      '/profile/sign_in',
+      '/profile/sign_in?r=%2Flist',
+      '/profile/sign_in?r=/request/profile/sign_in',
+      '/profile/sign_in?token=abc'
+    ].each do |url|
+      it "allows #{url}" do
+        get url, headers: headers
+        expect(response.status).to eq(200)
+      end
+    end
+  end
+
   it 'still serves loopback traffic without throttling' do
     400.times do
       get '/', headers: { 'HTTP_CF_CONNECTING_IP' => '127.0.0.1' }
