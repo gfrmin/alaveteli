@@ -501,11 +501,17 @@ class UserController < ApplicationController
   # and record that
   def work_out_post_redirect
     # Redirect to front page later if nothing else specified
-    params[:r] = "/" if params[:r].nil? && params[:token].nil?
+    no_destination = params[:r].nil? && params[:token].blank?
+    params[:r] = "/" if no_destination
 
     # The explicit "signin" link uses this to specify where to go back to
     if params[:r]
       @post_redirect = generate_post_redirect_for_signup(params[:r])
+      # Showing the form needs nothing saved when there's nowhere specific to
+      # go back to. Saving here gave crawlers a new token to follow on each
+      # visit, which they did without end.
+      return if no_destination && request.get?
+
       @post_redirect.save!
       params[:token] = @post_redirect.token
     elsif params[:token]

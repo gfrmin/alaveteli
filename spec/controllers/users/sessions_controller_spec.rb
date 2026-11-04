@@ -12,10 +12,8 @@ RSpec.describe Users::SessionsController do
       expect(response.body).to render_template('user/sign')
     end
 
-    it "should create post redirect to / when you just go to /signin" do
-      get :new
-      post_redirect = get_last_post_redirect
-      expect(post_redirect.uri).to eq("/")
+    it "should not create a post redirect when you just go to /signin" do
+      expect { get :new }.not_to change(PostRedirect, :count)
     end
 
     it "should create post redirect to /list when you click signin on /list" do
