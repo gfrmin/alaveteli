@@ -18,15 +18,14 @@ class Rack::Attack
     req.ip == '127.0.0.1' || req.ip == '::1'
   end
 
-  # Use the Cloudflare-supplied client IP when present, since accessinfo.hk
-  # is fronted by Cloudflare and req.ip is the loopback proxy.
+  # Use the IP worked out from trusted proxies, since accessinfo.hk is fronted
+  # by Cloudflare and req.ip is the loopback proxy. CF-Connecting-IP must not be
+  # used, as a client connecting to the origin directly can set it to anything.
   # Subclassing Rack::Attack::Request overrides the request type used by
   # Rack::Attack throttle blocks.
   class Request < ::Rack::Request
     def remote_ip
-      @remote_ip ||= (env['HTTP_CF_CONNECTING_IP'] ||
-                      env['action_dispatch.remote_ip'].to_s.presence ||
-                      ip).to_s
+      @remote_ip ||= (env['action_dispatch.remote_ip'].to_s.presence || ip).to_s
     end
   end
 
