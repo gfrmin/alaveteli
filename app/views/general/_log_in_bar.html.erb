@@ -40,6 +40,6 @@
     </ul>
     </div>
 <% else %>
-  <%= link_to _("Sign in or sign up"), signin_path(:r => request.fullpath), :class => "sign_in_link"  %>
+  <%= link_to _("Sign in or sign up"), sign_in_link_path, :class => "sign_in_link"  %>
 <% end %>
 </div>

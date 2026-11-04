@@ -60,6 +60,19 @@ class Rack::Attack
     req.path == '/profile/sign_in' && req.query_string.include?('%2525')
   end
 
+  # Nothing links to these any more: the sign in link used to return to the
+  # page it was on, including sign in pages themselves, which gave crawlers an
+  # endless supply of new URLs. Drop those they have already collected.
+  signin_returning_to_auth_page = %r{
+    (?:\A|&)r=(?:/|%2F)profile(?:/|%2F)
+    (?:sign_in|change_password(?:/|%2F)new)
+  }xi
+
+  blocklist('signin/returns-to-auth-page') do |req|
+    req.path == '/profile/sign_in' &&
+      req.query_string.match?(signin_returning_to_auth_page)
+  end
+
   # Coarse backstop for everything else.
   throttle('all/ip', limit: 300, period: 1.minute, &:remote_ip)
 

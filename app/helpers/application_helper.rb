@@ -32,6 +32,15 @@ module ApplicationHelper
   include StripeHelper
 
   # Copied from error_messages_for in active_record_helper.rb
+  # Returning to the current page makes no sense from the pages that lead to
+  # signing in, and nesting their URLs gives crawlers endless new ones.
+  def sign_in_link_path
+    return signin_path if %w(users/sessions password_changes).
+                            include?(controller_path)
+
+    signin_path(r: request.fullpath)
+  end
+
   def foi_error_messages_for(*params)
     options = params.last.is_a?(Hash) ? params.pop.symbolize_keys : {}
     objects = params.collect { |object_name| instance_variable_get("@#{object_name}") }.compact
