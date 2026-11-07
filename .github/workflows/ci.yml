@@ -56,10 +56,14 @@ jobs:
         - { ruby: '3.2', postgres: 13.5 }
         - { ruby: '3.3', postgres: 13.5 }
         - { ruby: '3.4', postgres: 13.5 }
+        # Production's target version (upstream develop tests 15 only). The
+        # fixmystreet images stop at 13, so use the official one; the "Setup
+        # database" step below creates the UTF-8 template it needs.
+        - { ruby: '3.2', postgres: 15.19, image: 'postgres:15.19' }
 
     services:
       postgres:
-        image: fixmystreet/postgres:${{ matrix.postgres }}
+        image: ${{ matrix.image || format('fixmystreet/postgres:{0}', matrix.postgres) }}
         env:
           POSTGRES_PASSWORD: postgres
         ports:
