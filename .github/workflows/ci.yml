@@ -103,16 +103,6 @@ jobs:
         ruby-version: ${{ matrix.ruby }}
         bundler-cache: true
 
-    - name: Add en_GB collation to the official image
-      # As docker/Dockerfile-postgres does for the fixmystreet images; the
-      # collate-order specs need it.
-      if: matrix.image
-      run: |
-        docker exec ${{ job.services.postgres.id }} \
-          localedef -i en_GB -c -f UTF-8 -A /usr/share/locale/locale.alias en_GB.UTF-8
-        psql postgres://postgres:postgres@localhost:5432 \
-          -c "SELECT pg_import_system_collations('pg_catalog')"
-
     - name: Setup database
       run: |
         psql postgres://postgres:postgres@localhost:5432 <<-EOSQL
@@ -120,6 +110,19 @@ jobs:
           UPDATE pg_database SET datistemplate=true WHERE datname='template_utf8';
           CREATE DATABASE alaveteli_test TEMPLATE template_utf8;
         EOSQL
+
+    - name: Add en_GB collation to the official image
+      # The fixmystreet images are built with an en_GB locale (as
+      # docker/Dockerfile-postgres does); the official one isn't, and the
+      # collate-order specs need it. Collations are per database, and
+      # databases made from template0 don't pick up imported ones, so create
+      # it in the test database itself.
+      if: matrix.image
+      run: |
+        docker exec ${{ job.services.postgres.id }} \
+          localedef -i en_GB -c -f UTF-8 -A /usr/share/locale/locale.alias en_GB.UTF-8
+        psql postgres://postgres:postgres@localhost:5432/alaveteli_test \
+          -c "CREATE COLLATION \"en_GB\" (locale = 'en_GB.UTF-8')"
 
     - name: Configure application and storage
       run: |
