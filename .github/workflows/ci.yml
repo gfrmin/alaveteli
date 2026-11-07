@@ -56,23 +56,8 @@ jobs:
         - { ruby: '3.2', postgres: 13.5 }
         - { ruby: '3.3', postgres: 13.5 }
         - { ruby: '3.4', postgres: 13.5 }
-        # Production's target version (upstream develop tests 15 only). The
-        # fixmystreet images stop at 13, so use the official one; the "Setup
-        # database" step below creates the UTF-8 template it needs.
-        - { ruby: '3.2', postgres: 15.19, image: 'postgres:15.19' }
-
-    services:
-      postgres:
-        image: ${{ matrix.image || format('fixmystreet/postgres:{0}', matrix.postgres) }}
-        env:
-          POSTGRES_PASSWORD: postgres
-        ports:
-        - '5432:5432'
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        # Production's target version; upstream develop tests 15 only.
+        - { ruby: '3.2', postgres: 15.19 }
 
     env:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/alaveteli_test
@@ -84,6 +69,27 @@ jobs:
       with:
         submodules: true
         fetch-depth: 0
+
+    - name: Start PostgreSQL
+      # As upstream: build docker/Dockerfile-postgres (official image plus the
+      # en_GB locale the collate-order specs need; createdb.sh makes
+      # template_utf8 and alaveteli_test) for whichever version is under test.
+      run: |
+        docker build \
+          --build-arg POSTGRES_VERSION=${{ matrix.postgres }} \
+          --file docker/Dockerfile-postgres --tag alaveteli-postgres .
+        docker run --detach --name postgres \
+          --env POSTGRES_PASSWORD=postgres --publish 5432:5432 \
+          alaveteli-postgres
+        for _ in $(seq 60); do
+          if docker exec postgres \
+               pg_isready -q -h 127.0.0.1 -U postgres -d alaveteli_test; then
+            exit 0
+          fi
+          sleep 2
+        done
+        docker logs postgres
+        exit 1
 
     - name: Install packages
       # Normally ~45 s. On 2026-10-23 it hung for 20-43 min in three of six jobs
@@ -102,27 +108,6 @@ jobs:
       with:
         ruby-version: ${{ matrix.ruby }}
         bundler-cache: true
-
-    - name: Setup database
-      run: |
-        psql postgres://postgres:postgres@localhost:5432 <<-EOSQL
-          CREATE DATABASE template_utf8 TEMPLATE template0 ENCODING "UTF-8";
-          UPDATE pg_database SET datistemplate=true WHERE datname='template_utf8';
-          CREATE DATABASE alaveteli_test TEMPLATE template_utf8;
-        EOSQL
-
-    - name: Add en_GB collation to the official image
-      # The fixmystreet images are built with an en_GB locale (as
-      # docker/Dockerfile-postgres does); the official one isn't, and the
-      # collate-order specs need it. Collations are per database, and
-      # databases made from template0 don't pick up imported ones, so create
-      # it in the test database itself.
-      if: matrix.image
-      run: |
-        docker exec ${{ job.services.postgres.id }} \
-          localedef -i en_GB -c -f UTF-8 -A /usr/share/locale/locale.alias en_GB.UTF-8
-        psql postgres://postgres:postgres@localhost:5432/alaveteli_test \
-          -c "CREATE COLLATION \"en_GB\" (locale = 'en_GB.UTF-8')"
 
     - name: Configure application and storage
       run: |
